@@ -416,6 +416,7 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
             UpgradeId.DAMAGE -> playerStats.baseDamage *= 1.2f // +20%
             UpgradeId.FIRE_RATE -> playerStats.fireCooldown *= 0.88f // -12%
             UpgradeId.BULLET_SPEED -> playerStats.bulletSpeed *= 1.25f // +25%
+            UpgradeId.BULLET_RANGE -> playerStats.bulletLifetimeMultiplier *= 1.3f // +30%
             UpgradeId.MULTI_SHOT -> playerStats.multiShotLevel++
             UpgradeId.PIERCE -> playerStats.pierceLevel++
             UpgradeId.MOVE_SPEED -> {
@@ -432,6 +433,7 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
             }
             UpgradeId.MAGNET -> playerStats.magnetLevel++
             UpgradeId.EXPLOSION_RADIUS -> playerStats.explosionRadiusLevel++
+            UpgradeId.BULLET_SIZE -> playerStats.bulletSizeMultiplier += 0.5f // +50% base size per level
         }
 
         isPaused = false

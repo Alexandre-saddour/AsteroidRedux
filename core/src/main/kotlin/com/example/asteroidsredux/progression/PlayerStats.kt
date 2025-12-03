@@ -11,6 +11,8 @@ data class PlayerStats(
     var baseDamage: Float = 1f,
     var fireCooldown: Float = 0.35f,
     var bulletSpeed: Float = 350f,
+    var bulletLifetimeMultiplier: Float = 1f, // Range multiplier
+    var bulletSizeMultiplier: Float = 1f,
     var shipAcceleration: Float = 300f,
     var shipMaxSpeed: Float = 450f,
 

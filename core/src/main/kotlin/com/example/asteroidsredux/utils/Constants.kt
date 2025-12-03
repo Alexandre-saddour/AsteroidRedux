@@ -18,12 +18,12 @@ object Constants {
     val PARTICLE_COLOR = Color(1f, 1f, 1f, 1f)
 
     // Ship
-    const val SHIP_SIZE = 20f
+    const val SHIP_SIZE = 25f
     const val SHIP_ROTATION_SPEED = 5f // Radians per second
 
     // Bullet
-    const val BULLET_LIFETIME = 2.0f // Seconds
-    const val BULLET_SIZE = 5f
+    const val BULLET_MAX_DISTANCE = 700f // Distance units
+    const val BULLET_SIZE = 7f
 
     // Asteroids
     const val ASTEROID_SPEED_MIN = 30f

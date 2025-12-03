@@ -34,6 +34,16 @@ object UpgradeCatalog {
             )
         ),
         UpgradeDefinition(
+            id = UpgradeId.BULLET_RANGE,
+            displayName = "Bullet Range",
+            descriptionPerLevel = listOf(
+                "Bullet range +30%",
+                "Bullet range +60%",
+                "Bullet range +90%",
+                "Bullet range +120%"
+            )
+        ),
+        UpgradeDefinition(
             id = UpgradeId.MULTI_SHOT, // TODO SUPER_UPGRADE
             displayName = "Multi Shot",
             descriptionPerLevel = listOf(
@@ -50,13 +60,15 @@ object UpgradeCatalog {
                 "Bullets pierce 2 enemies"
             )
         ),
-//        UpgradeDefinition(
-//            id = UpgradeId.BULLET_SIZE, // TODO SUPER_UPGRADE
-//            displayName = "Bigger bullets",
-//            descriptionPerLevel = listOf(
-//                "Bigger bullets",
-//            ),
-//        ),
+        UpgradeDefinition(
+            id = UpgradeId.BULLET_SIZE,
+            displayName = "Bigger Bullets",
+            descriptionPerLevel = listOf(
+                "Bullet size +50%",
+                "Bullet size +100%",
+                "Bullet size +150%"
+            )
+        ),
         UpgradeDefinition(
             id = UpgradeId.MOVE_SPEED,
             displayName = "Move Speed",

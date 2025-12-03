@@ -4,6 +4,7 @@ enum class UpgradeId {
     DAMAGE,
     FIRE_RATE,
     BULLET_SPEED,
+    BULLET_RANGE,
     MULTI_SHOT,
     PIERCE,
     MOVE_SPEED,
@@ -11,7 +12,7 @@ enum class UpgradeId {
     SHIELD,
     MAGNET,
     EXPLOSION_RADIUS,
-//    BULLET_SIZE,
+    BULLET_SIZE,
 }
 
 data class UpgradeDefinition(
