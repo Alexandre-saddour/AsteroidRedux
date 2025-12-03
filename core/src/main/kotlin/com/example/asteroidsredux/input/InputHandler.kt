@@ -8,8 +8,8 @@ class InputHandler : InputAdapter() {
     var isRotatingLeft = false
     var isRotatingRight = false
     var isThrusting = false
-    var isShooting = false
-    
+    var isShooting = autoshoot || false
+
     // For touch controls
     private val screenWidth = Gdx.graphics.width.toFloat()
     private val screenHeight = Gdx.graphics.height.toFloat()
@@ -43,11 +43,11 @@ class InputHandler : InputAdapter() {
                 isRotatingRight = true
             }
             // Simple tap for shooting logic can be handled in GameScreen update or here with a timer
-            // For now, let's say a quick tap is shoot, hold is rotate. 
+            // For now, let's say a quick tap is shoot, hold is rotate.
             // But requirement says: "Tactile : moitié gauche = rotation gauche, moitié droite = rotation droite."
             // "Double-tap ou second doigt = thrust."
             // "Tap court = tir"
-            
+
             // We'll handle state here, and GameScreen can interpret "just touched" for shooting if needed.
             isShooting = true // Trigger shoot on initial touch down for simplicity, or handle "Tap" specifically
         } else if (pointer == 1) {
@@ -66,5 +66,9 @@ class InputHandler : InputAdapter() {
             isThrusting = false
         }
         return true
+    }
+
+    companion object {
+        private const val autoshoot = true
     }
 }

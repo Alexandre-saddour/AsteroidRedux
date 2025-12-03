@@ -65,8 +65,6 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
 
         // Better shooting logic:
         if (inputHandler.isShooting && !ship.isDead) {
-             // We need a cooldown. Let's add it locally.
-             // Actually, let's just spawn a bullet if cooldown is ready.
              shoot()
         }
 
@@ -111,13 +109,12 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
 
     private var shootTimer = 0f
     private fun shoot() {
-        shootTimer -= Gdx.graphics.deltaTime
         if (shootTimer <= 0) {
             val bullet = Bullet()
             bullet.init(ship.nose.x, ship.nose.y, ship.angle)
             bullets.add(bullet)
             game.assets.getShootSound().play()
-            shootTimer = 0.25f // 4 shots per second
+            shootTimer = 0.2f // 5 shots per second
         }
     }
 
