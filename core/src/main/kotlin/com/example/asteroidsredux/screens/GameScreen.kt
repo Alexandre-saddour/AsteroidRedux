@@ -36,6 +36,7 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
 
     private var isPaused = false
     private var offeredUpgrades = listOf<UpgradeDefinition>()
+    private var levelUpMenuOpenedTime = 0f // Track when menu was opened
 
     // UI layout constants
     private val cardWidth = 350f
@@ -67,6 +68,8 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         if (!isPaused) {
             update(delta)
         } else {
+            // Increment menu timer
+            levelUpMenuOpenedTime += delta
             // Handle upgrade selection input
             handleUpgradeInput()
         }
@@ -393,6 +396,7 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     private fun triggerLevelUp() {
         isPaused = true
         offeredUpgrades = rollUpgradeOptions()
+        levelUpMenuOpenedTime = 0f // Reset timer when menu opens
     }
 
     private fun rollUpgradeOptions(): List<UpgradeDefinition> {
@@ -494,6 +498,11 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     }
 
     private fun handleUpgradeInput() {
+        // Block input for 750ms to prevent accidental selection
+        if (levelUpMenuOpenedTime < 0.75) {
+            return
+        }
+
         if (Gdx.input.justTouched()) {
             val touchX = Gdx.input.x.toFloat()
             val touchY = Gdx.input.y.toFloat()
