@@ -5,7 +5,6 @@ object UpgradeCatalog {
         UpgradeDefinition(
             id = UpgradeId.DAMAGE, // TODO HOW DOES IT WORK ?
             displayName = "Damage",
-            maxLevel = 5,
             descriptionPerLevel = listOf(
                 "Bullets deal +20% damage",
                 "Bullets deal +40% damage",
@@ -17,7 +16,6 @@ object UpgradeCatalog {
         UpgradeDefinition(
             id = UpgradeId.FIRE_RATE,
             displayName = "Fire Rate",
-            maxLevel = 5,
             descriptionPerLevel = listOf(
                 "Fire rate +12%",
                 "Fire rate +24%",
@@ -29,7 +27,6 @@ object UpgradeCatalog {
         UpgradeDefinition(
             id = UpgradeId.BULLET_SPEED,
             displayName = "Bullet Speed",
-            maxLevel = 3,
             descriptionPerLevel = listOf(
                 "Bullet speed +25%",
                 "Bullet speed +50%",
@@ -39,7 +36,6 @@ object UpgradeCatalog {
         UpgradeDefinition(
             id = UpgradeId.MULTI_SHOT, // TODO SUPER_UPGRADE
             displayName = "Multi Shot",
-            maxLevel = 3,
             descriptionPerLevel = listOf(
                 "+1 extra bullet",
                 "+2 extra bullets",
@@ -49,16 +45,21 @@ object UpgradeCatalog {
         UpgradeDefinition(
             id = UpgradeId.PIERCE, // TODO SUPER_UPGRADE
             displayName = "Pierce",
-            maxLevel = 2,
             descriptionPerLevel = listOf(
                 "Bullets pierce 1 enemy",
                 "Bullets pierce 2 enemies"
             )
         ),
+//        UpgradeDefinition(
+//            id = UpgradeId.BULLET_SIZE, // TODO SUPER_UPGRADE
+//            displayName = "Bigger bullets",
+//            descriptionPerLevel = listOf(
+//                "Bigger bullets",
+//            ),
+//        ),
         UpgradeDefinition(
             id = UpgradeId.MOVE_SPEED,
             displayName = "Move Speed",
-            maxLevel = 4,
             descriptionPerLevel = listOf(
                 "Ship speed +15%",
                 "Ship speed +30%",
@@ -69,7 +70,6 @@ object UpgradeCatalog {
         UpgradeDefinition(
             id = UpgradeId.MAX_HP,
             displayName = "Max HP",
-            maxLevel = 3,
             descriptionPerLevel = listOf(
                 "Max HP +1",
                 "Max HP +1",
@@ -79,7 +79,6 @@ object UpgradeCatalog {
         UpgradeDefinition(
             id = UpgradeId.SHIELD,
             displayName = "Shield",
-            maxLevel = 2,
             descriptionPerLevel = listOf(
                 "Active Shield (12s recharge)",
                 "Shield recharge reduced to 7s"
@@ -88,7 +87,6 @@ object UpgradeCatalog {
         UpgradeDefinition(
             id = UpgradeId.MAGNET,
             displayName = "Magnet",
-            maxLevel = 3,
             descriptionPerLevel = listOf(
                 "XP Gain +5%",
                 "XP Gain +10%",
@@ -98,7 +96,6 @@ object UpgradeCatalog {
         UpgradeDefinition(
             id = UpgradeId.EXPLOSION_RADIUS, // TODO SUPER_UPGRADE
             displayName = "Explosive Rounds",
-            maxLevel = 3,
             descriptionPerLevel = listOf(
                 "Small explosion on kill",
                 "Explosion radius +25%",

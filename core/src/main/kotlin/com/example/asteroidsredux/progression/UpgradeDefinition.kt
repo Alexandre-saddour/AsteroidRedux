@@ -10,12 +10,14 @@ enum class UpgradeId {
     MAX_HP,
     SHIELD,
     MAGNET,
-    EXPLOSION_RADIUS
+    EXPLOSION_RADIUS,
+//    BULLET_SIZE,
 }
 
 data class UpgradeDefinition(
     val id: UpgradeId,
     val displayName: String,
     val descriptionPerLevel: List<String>,
-    val maxLevel: Int
-)
+) {
+    val maxLevel = descriptionPerLevel.size
+}

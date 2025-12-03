@@ -474,24 +474,24 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
 
         // Title - Positioned above cards
         val cardTop = centerY + cardHeight / 2f
-        font.data.setScale(3.0f)
+        font.data.setScale(4.5f) // Increased from 3.0f
         font.draw(game.batch, "LEVEL UP!", 0f, cardTop + 80f, Constants.WORLD_WIDTH, com.badlogic.gdx.utils.Align.center, false)
 
         for ((i, upgrade) in offeredUpgrades.withIndex()) {
             val x = startX + i * (cardWidth + cardSpacing)
 
             // Upgrade name
-            font.data.setScale(1.8f)
+            font.data.setScale(2.5f) // Increased from 1.8f
             font.draw(game.batch, upgrade.displayName, x, cardTop - 60f, cardWidth, com.badlogic.gdx.utils.Align.center, false)
 
             // Level indicator
             val nextLevel = (playerStats.upgradeLevels[upgrade.id] ?: 0) + 1
-            font.data.setScale(1.2f)
+            font.data.setScale(1.8f) // Increased from 1.2f
             font.draw(game.batch, "Level $nextLevel", x, cardTop - 130f, cardWidth, com.badlogic.gdx.utils.Align.center, false)
 
             // Description
             val desc = upgrade.descriptionPerLevel.getOrNull(nextLevel - 1) ?: ""
-            font.data.setScale(1.2f)
+            font.data.setScale(1.6f) // Increased from 1.2f
             font.draw(game.batch, desc, x + 20f, cardTop - 200f, cardWidth - 40f, com.badlogic.gdx.utils.Align.center, true)
         }
         game.batch.end()
