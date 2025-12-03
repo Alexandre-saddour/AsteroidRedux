@@ -25,6 +25,14 @@ class Asteroid(val size: Float, x: Float, y: Float) {
         }
         polygon = Polygon(vertices)
     }
+    
+    val xpValue: Int
+        get() = when (size) {
+            Constants.ASTEROID_SIZE_LARGE -> Constants.XP_LARGE
+            Constants.ASTEROID_SIZE_MEDIUM -> Constants.XP_MEDIUM
+            Constants.ASTEROID_SIZE_SMALL -> Constants.XP_SMALL
+            else -> 0
+        }
 
     fun update(delta: Float) {
         if (!active) return

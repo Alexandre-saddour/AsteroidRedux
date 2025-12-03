@@ -7,7 +7,9 @@ import com.example.asteroidsredux.input.InputHandler
 import com.example.asteroidsredux.utils.Constants
 import com.example.asteroidsredux.utils.MathUtils2D
 
-class Ship(private val inputHandler: InputHandler) {
+import com.example.asteroidsredux.progression.PlayerStats
+
+class Ship(private val inputHandler: InputHandler, private val stats: PlayerStats) {
     val position = Vector2(Constants.WORLD_WIDTH / 2, Constants.WORLD_HEIGHT / 2)
     val velocity = Vector2()
     var angle = MathUtils.PI / 2 // Pointing up
@@ -27,13 +29,13 @@ class Ship(private val inputHandler: InputHandler) {
 
         // Thrust
         if (inputHandler.isThrusting) {
-            val thrust = Vector2(Constants.SHIP_THRUST * delta, 0f).rotateRad(angle)
+            val thrust = Vector2(stats.shipAcceleration * delta, 0f).rotateRad(angle)
             velocity.add(thrust)
         }
 
         // Cap speed
-        if (velocity.len() > Constants.SHIP_MAX_SPEED) {
-            velocity.setLength(Constants.SHIP_MAX_SPEED)
+        if (velocity.len() > stats.shipMaxSpeed) {
+            velocity.setLength(stats.shipMaxSpeed)
         }
 
         // Move

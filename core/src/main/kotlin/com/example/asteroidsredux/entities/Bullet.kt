@@ -5,24 +5,32 @@ import com.badlogic.gdx.math.Vector2
 import com.example.asteroidsredux.utils.Constants
 import com.example.asteroidsredux.utils.MathUtils2D
 
+import com.example.asteroidsredux.progression.PlayerStats
+
 class Bullet {
     val position = Vector2()
     val velocity = Vector2()
     var lifetime = 0f
     var active = false
 
-    fun init(x: Float, y: Float, angle: Float) {
+    var damage = 1f // todo: not used MAIS COMMENT SA MARCHE ??
+    var remainingHits = 0 // todo: not used
+
+    fun init(x: Float, y: Float, angle: Float, stats: PlayerStats) {
         position.set(x, y)
-        velocity.set(Constants.BULLET_SPEED, 0f).rotateRad(angle)
+        velocity.set(stats.bulletSpeed, 0f).rotateRad(angle)
         lifetime = Constants.BULLET_LIFETIME
         active = true
+
+        damage = stats.baseDamage
+        remainingHits = stats.pierceLevel
     }
 
     fun update(delta: Float) {
         if (!active) return
         position.mulAdd(velocity, delta)
         MathUtils2D.wrapAround(position, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
-        
+
         lifetime -= delta
         if (lifetime <= 0) {
             active = false

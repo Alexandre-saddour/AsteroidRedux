@@ -25,11 +25,15 @@ class GameOverScreen(private val game: AsteroidsGame, private val score: Int) : 
         game.batch.begin()
         val font = game.assets.getFont()
         font.color = Constants.SHIP_COLOR
-        font.data.setScale(0.1f)
+        font.data.setScale(2.5f) // Title
 
-        font.draw(game.batch, "GAME OVER", 0f, Constants.WORLD_HEIGHT / 2 + 10f, Constants.WORLD_WIDTH, Align.center, false)
+        font.draw(game.batch, "GAME OVER", 0f, Constants.WORLD_HEIGHT / 2 + 80f, Constants.WORLD_WIDTH, Align.center, false)
+        
+        font.data.setScale(1.8f) // Score
         font.draw(game.batch, "Score: $score", 0f, Constants.WORLD_HEIGHT / 2, Constants.WORLD_WIDTH, Align.center, false)
-        font.draw(game.batch, "Tap to Restart", 0f, Constants.WORLD_HEIGHT / 2 - 10f, Constants.WORLD_WIDTH, Align.center, false)
+        
+        font.data.setScale(1.5f) // Instruction
+        font.draw(game.batch, "Tap to Restart", 0f, Constants.WORLD_HEIGHT / 2 - 60f, Constants.WORLD_WIDTH, Align.center, false)
         game.batch.end()
 
         if (Gdx.input.justTouched()) {

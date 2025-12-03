@@ -25,11 +25,12 @@ class MenuScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         game.batch.begin()
         val font = game.assets.getFont()
         font.color = Constants.SHIP_COLOR
-        font.data.setScale(0.1f) // Scale down for world units
+        font.data.setScale(2.5f) // Title
         
-        // Simple centering logic
-        font.draw(game.batch, "ASTEROIDS REDUX", 0f, Constants.WORLD_HEIGHT / 2 + 10f, Constants.WORLD_WIDTH, Align.center, false)
-        font.draw(game.batch, "Tap to Play", 0f, Constants.WORLD_HEIGHT / 2 - 5f, Constants.WORLD_WIDTH, Align.center, false)
+        font.draw(game.batch, "ASTEROIDS REDUX", 0f, Constants.WORLD_HEIGHT / 2 + 50f, Constants.WORLD_WIDTH, Align.center, false)
+        
+        font.data.setScale(1.5f) // Subtitle
+        font.draw(game.batch, "Tap to Play", 0f, Constants.WORLD_HEIGHT / 2 - 20f, Constants.WORLD_WIDTH, Align.center, false)
         game.batch.end()
 
         if (Gdx.input.justTouched()) {
