@@ -34,13 +34,20 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     }
 
     override fun render(delta: Float) {
-        Gdx.gl.glClearColor(0.05f, 0.05f, 0.1f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        // Gradient background
+        game.shapeRenderer.projectionMatrix = camera.combined
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+        game.shapeRenderer.rect(
+            0f, 0f, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT,
+            Color.valueOf("0a0a1a"), Color.valueOf("0a0a1a"), // Bottom colors
+            Color.valueOf("1a1a3a"), Color.valueOf("1a1a3a")  // Top colors
+        )
+        game.shapeRenderer.end()
 
         camera.update()
         game.batch.projectionMatrix = camera.combined
-        game.shapeRenderer.projectionMatrix = camera.combined
-
+        
+        drawHeader()
         drawCategoryTabs()
         drawSkinGrid()
         drawBackButton()
@@ -48,26 +55,41 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         handleInput()
     }
 
+    private fun drawHeader() {
+        game.batch.begin()
+        val font = game.assets.getFont()
+        font.data.setScale(3f)
+        font.color = Color.CYAN
+        font.draw(game.batch, "CUSTOMIZE", 0f, Constants.WORLD_HEIGHT - 30f, Constants.WORLD_WIDTH, Align.center, false)
+        game.batch.end()
+    }
+
     private fun drawCategoryTabs() {
         val categories = SkinCategory.values()
-        val tabWidth = Constants.WORLD_WIDTH / categories.size
+        val tabWidth = 200f
+        val startX = (Constants.WORLD_WIDTH - (categories.size * tabWidth)) / 2f
+        val y = Constants.WORLD_HEIGHT - 120f
 
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        for ((i, category) in categories.withIndex()) {
-            val x = i * tabWidth
-            val isSelected = category == selectedCategory
-            game.shapeRenderer.color = if (isSelected) Color.CYAN else Color.DARK_GRAY
-            game.shapeRenderer.rect(x, Constants.WORLD_HEIGHT - tabHeight, tabWidth - 2f, tabHeight - 2f)
-        }
+        // Tab background line
+        game.shapeRenderer.color = Color.DARK_GRAY
+        game.shapeRenderer.rect(startX, y, categories.size * tabWidth, 2f)
+        
+        // Selected tab indicator
+        val selectedIndex = categories.indexOf(selectedCategory)
+        game.shapeRenderer.color = Color.CYAN
+        game.shapeRenderer.rect(startX + selectedIndex * tabWidth, y, tabWidth, 4f)
         game.shapeRenderer.end()
 
         game.batch.begin()
         val font = game.assets.getFont()
-        font.color = Color.WHITE
-        font.data.setScale(2f)
         for ((i, category) in categories.withIndex()) {
-            val x = i * tabWidth
-            font.draw(game.batch, category.name, x, Constants.WORLD_HEIGHT - tabHeight / 2 + 10f, tabWidth, Align.center, false)
+            val x = startX + i * tabWidth
+            val isSelected = category == selectedCategory
+            
+            font.data.setScale(if (isSelected) 1.8f else 1.5f)
+            font.color = if (isSelected) Color.WHITE else Color.GRAY
+            font.draw(game.batch, category.name, x, y + 40f, tabWidth, Align.center, false)
         }
         game.batch.end()
     }
@@ -78,46 +100,45 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         
         val totalWidth = cardsPerRow * skinCardWidth + (cardsPerRow - 1) * cardSpacing
         val startX = (Constants.WORLD_WIDTH - totalWidth) / 2f
-        val startY = Constants.WORLD_HEIGHT - tabHeight - 50f
+        val startY = Constants.WORLD_HEIGHT - 180f
 
+        // First pass: Draw all card backgrounds
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         for ((i, skin) in skins.withIndex()) {
             val row = i / cardsPerRow
             val col = i % cardsPerRow
             val x = startX + col * (skinCardWidth + cardSpacing)
             val y = startY - row * (skinCardHeight + cardSpacing) - skinCardHeight
-
-            val isUnlocked = game.skinManager.isUnlocked(selectedCategory, skin.id)
             val isSelected = skin.id == selectedSkinId
 
-            // Card background
-            game.shapeRenderer.color = when {
-                isSelected -> Color.CYAN.cpy().apply { a = 0.3f }
-                isUnlocked -> Color.DARK_GRAY
-                else -> Color.DARK_GRAY.cpy().apply { a = 0.5f }
+            if (isSelected) {
+                game.shapeRenderer.color = Color.CYAN.cpy().apply { a = 0.2f }
+                game.shapeRenderer.rect(x - 5f, y - 5f, skinCardWidth + 10f, skinCardHeight + 10f)
             }
+            
+            game.shapeRenderer.color = Color(0.15f, 0.15f, 0.25f, 0.9f)
             game.shapeRenderer.rect(x, y, skinCardWidth, skinCardHeight)
         }
         game.shapeRenderer.end()
 
-        // Draw borders
+        // Second pass: Draw selection borders
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         for ((i, skin) in skins.withIndex()) {
             val row = i / cardsPerRow
             val col = i % cardsPerRow
             val x = startX + col * (skinCardWidth + cardSpacing)
             val y = startY - row * (skinCardHeight + cardSpacing) - skinCardHeight
-
             val isSelected = skin.id == selectedSkinId
-            game.shapeRenderer.color = if (isSelected) Color.CYAN else Color.WHITE
-            game.shapeRenderer.rect(x, y, skinCardWidth, skinCardHeight)
+
+            if (isSelected) {
+                game.shapeRenderer.color = Color.CYAN
+                game.shapeRenderer.rect(x, y, skinCardWidth, skinCardHeight)
+            }
         }
         game.shapeRenderer.end()
 
-        // Draw skin names
+        // Third pass: Draw textures and text
         game.batch.begin()
-        val font = game.assets.getFont()
-        font.data.setScale(1.5f)
         for ((i, skin) in skins.withIndex()) {
             val row = i / cardsPerRow
             val col = i % cardsPerRow
@@ -125,40 +146,57 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
             val y = startY - row * (skinCardHeight + cardSpacing) - skinCardHeight
 
             val isUnlocked = game.skinManager.isUnlocked(selectedCategory, skin.id)
-            font.color = if (isUnlocked) Color.WHITE else Color.GRAY
+            val isSelected = skin.id == selectedSkinId
+
+            // Skin Preview (Texture)
+            val texture = game.assets.getTexture(skin)
+            if (texture != null) {
+                val previewSize = 120f
+                val previewX = x + (skinCardWidth - previewSize) / 2f
+                val previewY = y + (skinCardHeight - previewSize) / 2f + 20f
+                
+                val color = if (isUnlocked) Color.WHITE else Color.GRAY
+                game.batch.setColor(color)
+                game.batch.draw(texture, previewX, previewY, previewSize, previewSize)
+                game.batch.setColor(Color.WHITE)
+            }
+
+            // Text
+            val font = game.assets.getFont()
+            font.data.setScale(1.2f)
+            font.color = if (isSelected) Color.CYAN else Color.WHITE
             font.draw(game.batch, skin.displayName, x, y + 40f, skinCardWidth, Align.center, false)
             
             if (!isUnlocked && skin.unlockCondition != null) {
-                font.data.setScale(1f)
+                font.data.setScale(0.9f)
                 font.color = Color.GRAY
                 font.draw(game.batch, "🔒 ${skin.unlockCondition}", x, y + 20f, skinCardWidth, Align.center, true)
-                font.data.setScale(1.5f)
             }
         }
         game.batch.end()
     }
 
     private fun drawBackButton() {
-        val btnWidth = 150f
-        val btnHeight = 50f
-        val x = 20f
-        val y = 20f
+        val btnWidth = 120f
+        val btnHeight = 40f
+        val x = 30f
+        val y = 30f
 
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        game.shapeRenderer.color = Color.DARK_GRAY
+        game.shapeRenderer.color = Color(0.2f, 0.2f, 0.3f, 1f)
         game.shapeRenderer.rect(x, y, btnWidth, btnHeight)
         game.shapeRenderer.end()
 
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        game.shapeRenderer.color = Color.WHITE
+        game.shapeRenderer.color = Color.GRAY
         game.shapeRenderer.rect(x, y, btnWidth, btnHeight)
         game.shapeRenderer.end()
 
         game.batch.begin()
         val font = game.assets.getFont()
         font.color = Color.WHITE
-        font.data.setScale(2f)
-        font.draw(game.batch, "← Back", x, y + btnHeight / 2 + 10f, btnWidth, Align.center, false)
+        font.data.setScale(1.5f)
+        font.draw(game.batch, "BACK", x, y + btnHeight / 2 + 8f, btnWidth, Align.center, false)
         game.batch.end()
     }
 
@@ -168,7 +206,7 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
             val touchY = Constants.WORLD_HEIGHT - Gdx.input.y.toFloat()
 
             // Check back button
-            if (touchX < 170f && touchY < 70f) {
+            if (touchX < 160f && touchY < 80f) {
                 game.screen = MenuScreen(game)
                 dispose()
                 return
@@ -176,24 +214,30 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
 
             // Check category tabs
             val categories = SkinCategory.values()
-            val tabWidth = Constants.WORLD_WIDTH / categories.size
-            if (touchY > Constants.WORLD_HEIGHT - tabHeight) {
-                val tabIndex = (touchX / tabWidth).toInt().coerceIn(0, categories.size - 1)
-                selectedCategory = categories[tabIndex]
-                return
+            val tabWidth = 200f
+            val startX = (Constants.WORLD_WIDTH - (categories.size * tabWidth)) / 2f
+            val tabY = Constants.WORLD_HEIGHT - 120f
+            
+            if (touchY > tabY && touchY < tabY + 60f) {
+                val relativeX = touchX - startX
+                if (relativeX >= 0 && relativeX < categories.size * tabWidth) {
+                    val tabIndex = (relativeX / tabWidth).toInt()
+                    selectedCategory = categories[tabIndex]
+                    return
+                }
             }
 
             // Check skin cards
             val skins = game.skinManager.getSkinsForCategory(selectedCategory)
             val totalWidth = cardsPerRow * skinCardWidth + (cardsPerRow - 1) * cardSpacing
-            val startX = (Constants.WORLD_WIDTH - totalWidth) / 2f
-            val startY = Constants.WORLD_HEIGHT - tabHeight - 50f
+            val gridStartX = (Constants.WORLD_WIDTH - totalWidth) / 2f
+            val gridStartY = Constants.WORLD_HEIGHT - 180f
 
             for ((i, skin) in skins.withIndex()) {
                 val row = i / cardsPerRow
                 val col = i % cardsPerRow
-                val x = startX + col * (skinCardWidth + cardSpacing)
-                val y = startY - row * (skinCardHeight + cardSpacing) - skinCardHeight
+                val x = gridStartX + col * (skinCardWidth + cardSpacing)
+                val y = gridStartY - row * (skinCardHeight + cardSpacing) - skinCardHeight
 
                 if (touchX >= x && touchX <= x + skinCardWidth && touchY >= y && touchY <= y + skinCardHeight) {
                     if (game.skinManager.isUnlocked(selectedCategory, skin.id)) {

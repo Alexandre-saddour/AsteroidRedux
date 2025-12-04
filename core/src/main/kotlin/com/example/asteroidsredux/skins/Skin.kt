@@ -5,7 +5,7 @@ package com.example.asteroidsredux.skins
  */
 enum class SkinCategory {
     SHIP,
-    // ASTEROID,
+    ASTEROID,
     // BULLET,
     // BACKGROUND,
 }

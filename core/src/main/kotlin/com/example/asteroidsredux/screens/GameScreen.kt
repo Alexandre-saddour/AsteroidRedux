@@ -24,7 +24,7 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
 
     // Architectural Components
     private val worldManager = WorldManager(ship)
-    private val gameRenderer = GameRenderer(worldManager, game.batch, game.shapeRenderer)
+    private val gameRenderer = GameRenderer(worldManager, game.batch, game.shapeRenderer, game.assets, game.skinManager)
     private val hud = Hud(game.batch, game.shapeRenderer, game.assets, inputHandler, playerStats)
     private val collisionSystem = CollisionSystem(
         worldManager,

@@ -8,11 +8,13 @@ class SkinManager {
     // Unlocked skins per category: Map<Category, Set<SkinId>>
     private val unlockedSkins = mutableMapOf<SkinCategory, MutableSet<String>>().apply {
         put(SkinCategory.SHIP, mutableSetOf(ShipSkinId.DEFAULT.name))
+        put(SkinCategory.ASTEROID, mutableSetOf(AsteroidSkinId.CLASSIC.name, AsteroidSkinId.ROCK.name))
     }
     
     // Selected skin per category: Map<Category, SkinId>
     private val selectedSkins = mutableMapOf<SkinCategory, String>().apply {
         put(SkinCategory.SHIP, ShipSkinId.DEFAULT.name)
+        put(SkinCategory.ASTEROID, AsteroidSkinId.CLASSIC.name)
     }
     
     // Listeners per category
@@ -40,6 +42,7 @@ class SkinManager {
     fun getSkinsForCategory(category: SkinCategory): List<Skin> {
         return when (category) {
             SkinCategory.SHIP -> ShipSkinCatalog.skins
+            SkinCategory.ASTEROID -> AsteroidSkinCatalog.skins
         }
     }
     
@@ -67,5 +70,19 @@ class SkinManager {
     
     fun addShipSkinChangeListener(listener: (ShipSkinId) -> Unit) {
         addListener(SkinCategory.SHIP) { skinId -> listener(ShipSkinId.valueOf(skinId)) }
+    }
+
+    // --- Asteroid-specific convenience methods ---
+
+    var selectedAsteroidSkinId: AsteroidSkinId
+        get() = AsteroidSkinId.valueOf(selectedSkins[SkinCategory.ASTEROID] ?: AsteroidSkinId.CLASSIC.name)
+        private set(value) { selectedSkins[SkinCategory.ASTEROID] = value.name }
+
+    fun selectAsteroidSkin(id: AsteroidSkinId): Boolean = selectSkin(SkinCategory.ASTEROID, id.name)
+
+    fun getSelectedAsteroidSkin(): AsteroidSkin = AsteroidSkinCatalog.getSkin(selectedAsteroidSkinId)
+
+    fun addAsteroidSkinChangeListener(listener: (AsteroidSkinId) -> Unit) {
+        addListener(SkinCategory.ASTEROID) { skinId -> listener(AsteroidSkinId.valueOf(skinId)) }
     }
 }

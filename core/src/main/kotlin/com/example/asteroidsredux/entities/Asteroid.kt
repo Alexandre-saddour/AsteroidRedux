@@ -47,4 +47,32 @@ class Asteroid(val size: Float, x: Float, y: Float) {
         shapeRenderer.color = Constants.ASTEROID_COLOR
         shapeRenderer.polygon(polygon.transformedVertices)
     }
+
+    fun render(batch: com.badlogic.gdx.graphics.g2d.SpriteBatch, texture: com.badlogic.gdx.graphics.Texture) {
+        if (!active) return
+        
+        // Draw texture centered on position, rotated by polygon rotation
+        // Polygon rotation is tracked internally, but we can just use a rotation variable if we want
+        // For now, let's just use the polygon's rotation if we can access it, or just rotate visually
+        
+        val radius = size
+        batch.draw(
+            texture,
+            position.x - radius,
+            position.y - radius,
+            radius, // originX
+            radius, // originY
+            radius * 2, // width
+            radius * 2, // height
+            1f,
+            1f,
+            polygon.rotation,
+            0,
+            0,
+            texture.width,
+            texture.height,
+            false,
+            false
+        )
+    }
 }

@@ -5,12 +5,17 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.example.asteroidsredux.skins.AsteroidSkinId
+import com.example.asteroidsredux.skins.SkinManager
+import com.example.asteroidsredux.utils.Assets
 import com.example.asteroidsredux.utils.Constants
 
 class GameRenderer(
     private val world: WorldManager,
     private val batch: SpriteBatch,
-    private val shapeRenderer: ShapeRenderer
+    private val shapeRenderer: ShapeRenderer,
+    private val assets: Assets,
+    private val skinManager: SkinManager
 ) {
     private val camera = OrthographicCamera()
     var zoomFactor = Constants.Rendering.DEFAULT_ZOOM
@@ -53,11 +58,25 @@ class GameRenderer(
     }
 
     private fun renderWorld() {
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        for (asteroid in world.asteroids) asteroid.render(shapeRenderer)
-        shapeRenderer.end()
+        val asteroidSkinId = skinManager.selectedAsteroidSkinId
+        
+        // Render Asteroids (Classic)
+        if (asteroidSkinId == AsteroidSkinId.CLASSIC) {
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+            for (asteroid in world.asteroids) asteroid.render(shapeRenderer)
+            shapeRenderer.end()
+        }
 
         batch.begin()
+        
+        // Render Asteroids (Sprite)
+        if (asteroidSkinId != AsteroidSkinId.CLASSIC) {
+            val texture = assets.getAsteroidTexture(asteroidSkinId)
+            if (texture != null) {
+                for (asteroid in world.asteroids) asteroid.render(batch, texture)
+            }
+        }
+        
         world.ship.render(batch)
         batch.end()
 
