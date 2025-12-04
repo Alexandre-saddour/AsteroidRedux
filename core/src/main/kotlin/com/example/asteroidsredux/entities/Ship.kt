@@ -25,11 +25,11 @@ class Ship(
     var isDead = false
     
     // Current texture, updated when skin changes
-    private var texture: Texture = assets.getShipTexture(skinManager.selectedSkinId)
+    private var texture: Texture = assets.getShipTexture(skinManager.selectedShipSkinId)
     
     init {
         // Listen for skin changes
-        skinManager.addSkinChangeListener { skinId ->
+        skinManager.addShipSkinChangeListener { skinId ->
             texture = assets.getShipTexture(skinId)
         }
     }

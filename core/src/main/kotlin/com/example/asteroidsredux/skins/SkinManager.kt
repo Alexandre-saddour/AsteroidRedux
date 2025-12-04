@@ -1,48 +1,71 @@
 package com.example.asteroidsredux.skins
 
+/**
+ * Central manager for all skin categories.
+ * Handles unlocking, selecting, and notifying listeners of skin changes.
+ */
 class SkinManager {
-    // Set of unlocked skin IDs
-    private val unlockedSkins = mutableSetOf(ShipSkinId.DEFAULT)
-    
-    // Currently selected skin
-    var selectedSkinId: ShipSkinId = ShipSkinId.DEFAULT
-        private set
-    
-    // Listeners for skin changes
-    private val skinChangeListeners = mutableListOf<(ShipSkinId) -> Unit>()
-    
-    fun isUnlocked(id: ShipSkinId): Boolean = id in unlockedSkins
-    
-    fun unlockSkin(id: ShipSkinId) {
-        unlockedSkins.add(id)
+    // Unlocked skins per category: Map<Category, Set<SkinId>>
+    private val unlockedSkins = mutableMapOf<SkinCategory, MutableSet<String>>().apply {
+        put(SkinCategory.SHIP, mutableSetOf(ShipSkinId.DEFAULT.name))
     }
     
-    fun selectSkin(id: ShipSkinId): Boolean {
-        if (!isUnlocked(id)) return false
-        
-        selectedSkinId = id
-        notifyListeners()
+    // Selected skin per category: Map<Category, SkinId>
+    private val selectedSkins = mutableMapOf<SkinCategory, String>().apply {
+        put(SkinCategory.SHIP, ShipSkinId.DEFAULT.name)
+    }
+    
+    // Listeners per category
+    private val listeners = mutableMapOf<SkinCategory, MutableList<(String) -> Unit>>()
+    
+    // --- Generic API ---
+    
+    fun isUnlocked(category: SkinCategory, skinId: String): Boolean {
+        return unlockedSkins[category]?.contains(skinId) == true
+    }
+    
+    fun unlockSkin(category: SkinCategory, skinId: String) {
+        unlockedSkins.getOrPut(category) { mutableSetOf() }.add(skinId)
+    }
+    
+    fun selectSkin(category: SkinCategory, skinId: String): Boolean {
+        if (!isUnlocked(category, skinId)) return false
+        selectedSkins[category] = skinId
+        notifyListeners(category, skinId)
         return true
     }
     
-    fun getSelectedSkin(): ShipSkin = ShipSkinCatalog.getSkin(selectedSkinId)
+    fun getSelectedSkinId(category: SkinCategory): String? = selectedSkins[category]
     
-    fun getUnlockedSkins(): List<ShipSkin> {
-        return ShipSkinCatalog.skins.filter { isUnlocked(it.id) }
+    fun getSkinsForCategory(category: SkinCategory): List<Skin> {
+        return when (category) {
+            SkinCategory.SHIP -> ShipSkinCatalog.skins
+        }
     }
     
-    fun getAllSkins(): List<ShipSkin> = ShipSkinCatalog.skins
-    
-    // Listener support for in-game switching
-    fun addSkinChangeListener(listener: (ShipSkinId) -> Unit) {
-        skinChangeListeners.add(listener)
+    fun addListener(category: SkinCategory, listener: (String) -> Unit) {
+        listeners.getOrPut(category) { mutableListOf() }.add(listener)
     }
     
-    fun removeSkinChangeListener(listener: (ShipSkinId) -> Unit) {
-        skinChangeListeners.remove(listener)
+    fun removeListener(category: SkinCategory, listener: (String) -> Unit) {
+        listeners[category]?.remove(listener)
     }
     
-    private fun notifyListeners() {
-        skinChangeListeners.forEach { it(selectedSkinId) }
+    private fun notifyListeners(category: SkinCategory, skinId: String) {
+        listeners[category]?.forEach { it(skinId) }
+    }
+    
+    // --- Ship-specific convenience methods ---
+    
+    var selectedShipSkinId: ShipSkinId
+        get() = ShipSkinId.valueOf(selectedSkins[SkinCategory.SHIP] ?: ShipSkinId.DEFAULT.name)
+        private set(value) { selectedSkins[SkinCategory.SHIP] = value.name }
+    
+    fun selectShipSkin(id: ShipSkinId): Boolean = selectSkin(SkinCategory.SHIP, id.name)
+    
+    fun getSelectedShipSkin(): ShipSkin = ShipSkinCatalog.getSkin(selectedShipSkinId)
+    
+    fun addShipSkinChangeListener(listener: (ShipSkinId) -> Unit) {
+        addListener(SkinCategory.SHIP) { skinId -> listener(ShipSkinId.valueOf(skinId)) }
     }
 }

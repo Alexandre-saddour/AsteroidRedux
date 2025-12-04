@@ -5,7 +5,7 @@ object ShipSkinCatalog {
         ShipSkin(
             id = ShipSkinId.DEFAULT,
             displayName = "Default",
-            textureFileName = "images/ship.png",
+            textureFileName = "images/ship1.png",
             unlockCondition = null // Unlocked by default
         ),
         // Add more skins here:
@@ -18,6 +18,6 @@ object ShipSkinCatalog {
     )
 
     fun getSkin(id: ShipSkinId): ShipSkin {
-        return skins.first { it.id == id }
+        return skins.first { it.id == id.name }
     }
 }
