@@ -2,158 +2,91 @@ package com.example.asteroidsredux.screens
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ScreenAdapter
-import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
-import com.badlogic.gdx.utils.Array
 import com.example.asteroidsredux.AsteroidsGame
-import com.example.asteroidsredux.entities.Asteroid
 import com.example.asteroidsredux.entities.Bullet
-import com.example.asteroidsredux.entities.Particle
 import com.example.asteroidsredux.entities.Ship
+import com.example.asteroidsredux.game.CollisionSystem
+import com.example.asteroidsredux.game.GameRenderer
+import com.example.asteroidsredux.game.Hud
+import com.example.asteroidsredux.game.WorldManager
 import com.example.asteroidsredux.input.InputHandler
-import com.example.asteroidsredux.utils.Constants
-
 import com.example.asteroidsredux.progression.PlayerStats
 import com.example.asteroidsredux.progression.UpgradeCatalog
 import com.example.asteroidsredux.progression.UpgradeDefinition
 import com.example.asteroidsredux.progression.UpgradeId
+import com.example.asteroidsredux.utils.Constants
 
 class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
-    private val camera = OrthographicCamera()
-    private val uiCamera = OrthographicCamera() // Camera for UI
-    private var zoomFactor = 0.85f // Zoom level (smaller is closer)
-
     private val inputHandler = InputHandler()
-
     private val playerStats = PlayerStats()
     private val ship = Ship(inputHandler, playerStats, game.assets.getShipTexture())
 
-    private val asteroids = Array<Asteroid>()
-    private val bullets = Array<Bullet>()
-    private val particles = Array<Particle>()
-    
-    // Temporary arrays to avoid nested iteration issues
-    private val asteroidsToAdd = Array<Asteroid>()
-    private val asteroidsToRemove = Array<Asteroid>()
+    // Architectural Components
+    private val worldManager = WorldManager(ship)
+    private val gameRenderer = GameRenderer(worldManager, game.batch, game.shapeRenderer)
+    private val hud = Hud(game.batch, game.shapeRenderer, game.assets, inputHandler, playerStats)
+    private val collisionSystem = CollisionSystem(
+        worldManager,
+        playerStats,
+        game.assets,
+        onScore = { score += it },
+        onXp = { grantXp(it) }
+    )
 
     private var score = 0
-    // Level tracked in playerStats
-
     private var isPaused = false
     private var offeredUpgrades = listOf<UpgradeDefinition>()
-    private var levelUpMenuOpenedTime = 0f // Track when menu was opened
-
-    // UI layout constants
-    private val cardWidth = 350f
-    private val cardHeight = 450f
-    private val cardSpacing = 40f
+    private var levelUpMenuOpenedTime = 0f
 
     init {
+        // Init world dimensions
         Constants.WORLD_HEIGHT = Gdx.graphics.height.toFloat()
         Constants.WORLD_WIDTH = Gdx.graphics.width.toFloat()
-        camera.setToOrtho(false, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
-        uiCamera.setToOrtho(false, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT) // Init UI camera
+
         Gdx.input.inputProcessor = inputHandler
-        spawnAsteroids(3)
+        worldManager.spawnAsteroids(Constants.Game.INITIAL_ASTEROID_COUNT)
     }
 
-    private fun spawnAsteroids(count: Int) {
-        for (i in 0 until count) {
-            var x = MathUtils.random(Constants.WORLD_WIDTH)
-            var y = MathUtils.random(Constants.WORLD_HEIGHT)
-            // Avoid spawning on ship
-            while (MathUtils.isEqual(x, ship.position.x, 10f) && MathUtils.isEqual(y, ship.position.y, 10f)) {
-                x = MathUtils.random(Constants.WORLD_WIDTH)
-                y = MathUtils.random(Constants.WORLD_HEIGHT)
-            }
-            asteroids.add(Asteroid(Constants.ASTEROID_SIZE_LARGE, x, y))
-        }
+    override fun resize(width: Int, height: Int) {
+        Constants.WORLD_WIDTH = width.toFloat()
+        Constants.WORLD_HEIGHT = height.toFloat()
+        
+        gameRenderer.resize(Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
+        hud.resize(Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
     }
 
     override fun render(delta: Float) {
         if (!isPaused) {
             update(delta)
         } else {
-            // Increment menu timer
             levelUpMenuOpenedTime += delta
-            // Handle upgrade selection input
-            handleUpgradeInput()
+            hud.handleLevelUpInput(offeredUpgrades) { upgrade ->
+                applyUpgrade(upgrade)
+            }
         }
-        draw()
-        if (isPaused) {
-            drawLevelUpOverlay()
-        }
+
+        gameRenderer.render()
+        hud.render(score, isPaused, offeredUpgrades)
     }
 
     private fun update(delta: Float) {
-        // Update joystick rotation
         inputHandler.updateRotation()
 
-        // Input for shooting
-        if (inputHandler.isShooting && !ship.isDead) {
-            // Simple rate limiting could be added here
-            // For now, let's just shoot on "just touched" logic or similar if we want semi-auto
-            // But InputHandler sets isShooting to true on touchDown.
-            // We need to ensure we don't spawn 60 bullets a second.
-            // Let's implement a simple timer in Ship or here.
-            // For simplicity, let's modify logic: shoot only on new taps or limit rate.
-            // Given "Tap court = tir; appui long = tir auto optionnel", let's do a simple cooldown.
-        }
-
-        // Better shooting logic:
+        // Shooting Logic
         shootTimer -= delta
         if (inputHandler.isShooting && !ship.isDead) {
              shoot()
         }
 
-        ship.update(delta)
+        worldManager.update(delta)
+        collisionSystem.checkCollisions()
 
-        // Update entities
-        val asteroidIter = asteroids.iterator()
-        while (asteroidIter.hasNext()) {
-            val asteroid = asteroidIter.next()
-            asteroid.update(delta)
-        }
-
-        val bulletIter = bullets.iterator()
-        while (bulletIter.hasNext()) {
-            val bullet = bulletIter.next()
-            bullet.update(delta)
-            if (!bullet.active) bulletIter.remove()
-        }
-
-        val particleIter = particles.iterator()
-        while (particleIter.hasNext()) {
-            val particle = particleIter.next()
-            particle.update(delta)
-            if (!particle.active) particleIter.remove()
-        }
-
-        checkCollisions()
-        
-        // Apply deferred asteroid operations (to avoid nested iteration)
-        for (asteroid in asteroidsToRemove) {
-            asteroids.removeValue(asteroid, true)
-        }
-        asteroidsToRemove.clear()
-        
-        for (asteroid in asteroidsToAdd) {
-            asteroids.add(asteroid)
-        }
-        asteroidsToAdd.clear()
-
-        if (asteroids.size == 0) {
-            // Wave clear logic? Maybe just spawn more.
-            // User didn't specify wave logic changes, but we should probably keep spawning.
-            spawnAsteroids(2 + playerStats.level)
+        if (worldManager.asteroids.size == 0) {
+            worldManager.spawnAsteroids(Constants.Game.WAVE_SPAWN_MULTIPLIER + playerStats.level)
         }
 
         if (ship.isDead) {
-            // Wait a bit or go to game over immediately?
-            // Let's wait for particles to fade or just go.
-            // For now, immediate transition after a short delay would be nice, but let's do immediate for MVP.
             game.screen = GameOverScreen(game, score)
             dispose()
         }
@@ -162,27 +95,11 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     private var shootTimer = 0f
     private fun shoot() {
         if (shootTimer <= 0) {
-            // Multi-shot logic
             val baseAngle = ship.angle
             val count = 1 + playerStats.multiShotLevel
-            // Spread angles: 1->0, 2->±8, 3->0,±12 (wait, user said: L1:+1(2 total) ±8deg. L2:+2(3 total) ±12deg. L3:+3(4 total) ±16deg)
-            // Let's implement spread logic
-            val spread = when (playerStats.multiShotLevel) {
-                1 -> 8f * MathUtils.degreesToRadians // 2 bullets
-                2 -> 12f * MathUtils.degreesToRadians // 3 bullets
-                3 -> 16f * MathUtils.degreesToRadians // 4 bullets
-                else -> 0f
-            }
 
             for (i in 0 until count) {
                 val bullet = Bullet()
-                // Distribute evenly within [-spread, +spread]?
-                // Or specific fixed angles?
-                // Let's do simple distribution centered on nose.
-                // If count 2: -8, +8.
-                // If count 3: -12, 0, +12.
-                // If count 4: -16, -5.3, +5.3, +16.
-
                 val angleOffset = if (count == 1) 0f else {
                     val maxAngle = when(count) {
                         2 -> 8f
@@ -195,7 +112,7 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
                 }
 
                 bullet.init(ship.nose.x, ship.nose.y, baseAngle + angleOffset, playerStats)
-                bullets.add(bullet)
+                worldManager.addBullet(bullet)
             }
 
             game.assets.getShootSound().play()
@@ -203,242 +120,7 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         }
     }
 
-    private fun checkCollisions() {
-        if (ship.isDead) return
-
-        // Bullet <-> Asteroid
-        val bulletIter = bullets.iterator()
-        while (bulletIter.hasNext()) {
-            val bullet = bulletIter.next()
-            val asteroidIter = asteroids.iterator()
-            while (asteroidIter.hasNext()) {
-                val asteroid = asteroidIter.next()
-                if (asteroid.polygon.contains(bullet.position)) {
-                    asteroid.active = false
-                    asteroidIter.remove()
-
-                    handleAsteroidDestruction(asteroid)
-
-                    // Pierce mechanic: bullet can hit multiple asteroids
-                    if (bullet.remainingHits > 0) {
-                        bullet.remainingHits--
-                    } else {
-                        bullet.active = false
-                        bulletIter.remove()
-                        break
-                    }
-                }
-            }
-        }
-
-
-        // Ship <-> Asteroid
-        for (asteroid in asteroids) {
-            // Simple circle collision for ship
-            val dist = ship.position.dst(asteroid.position)
-            if (dist < Constants.SHIP_SIZE + asteroid.size) {
-                // Take damage
-                playerStats.currentHp--
-                game.assets.getExplosionSound().play()
-                spawnParticles(ship.position.x, ship.position.y, 10)
-
-                // Destroy the asteroid that hit us
-                asteroid.active = false
-                asteroids.removeValue(asteroid, true)
-
-                // Check if dead
-                if (playerStats.currentHp <= 0) {
-                    ship.isDead = true
-                    spawnParticles(ship.position.x, ship.position.y, 30)
-                }
-                break
-            }
-        }
-    }
-
-    private fun handleAsteroidDestruction(asteroid: Asteroid) {
-        game.assets.getExplosionSound().play()
-        spawnParticles(asteroid.position.x, asteroid.position.y, 10)
-
-        // Grant XP for destroying this asteroid
-        grantXp(asteroid.xpValue)
-
-        when (asteroid.size) {
-            Constants.ASTEROID_SIZE_LARGE -> {
-                score += Constants.ASTEROID_SCORE_LARGE
-                // Defer adding new asteroids to avoid nested iteration
-                asteroidsToAdd.add(Asteroid(Constants.ASTEROID_SIZE_MEDIUM, asteroid.position.x, asteroid.position.y))
-                asteroidsToAdd.add(Asteroid(Constants.ASTEROID_SIZE_MEDIUM, asteroid.position.x, asteroid.position.y))
-            }
-            Constants.ASTEROID_SIZE_MEDIUM -> {
-                score += Constants.ASTEROID_SCORE_MEDIUM
-                // Defer adding new asteroids to avoid nested iteration
-                asteroidsToAdd.add(Asteroid(Constants.ASTEROID_SIZE_SMALL, asteroid.position.x, asteroid.position.y))
-                asteroidsToAdd.add(Asteroid(Constants.ASTEROID_SIZE_SMALL, asteroid.position.x, asteroid.position.y))
-            }
-            Constants.ASTEROID_SIZE_SMALL -> {
-                score += Constants.ASTEROID_SCORE_SMALL
-            }
-        }
-
-        // Explosion Radius Upgrade - damage nearby asteroids
-        if (playerStats.explosionRadiusLevel > 0) {
-            val baseRadius = 80f
-            val radius = baseRadius * (1f + 0.25f * playerStats.explosionRadiusLevel)
-
-            // Use a snapshot to avoid nested iteration
-            val snapshot = Array<Asteroid>(asteroids)
-            for (nearby in snapshot) {
-                if (nearby.active && nearby.position.dst(asteroid.position) <= radius) {
-                    // Only destroy small asteroids with explosion
-                    if (nearby.size == Constants.ASTEROID_SIZE_SMALL) {
-                        nearby.active = false
-                        asteroidsToRemove.add(nearby)
-                        handleAsteroidDestruction(nearby) // Recursive for XP and potential chain reactions
-                    }
-                }
-            }
-        }
-    }
-
-    private fun spawnParticles(x: Float, y: Float, count: Int) {
-        for (i in 0 until count) {
-            val p = Particle()
-            val angle = MathUtils.random(0f, MathUtils.PI2)
-            val speed = MathUtils.random(1f, Constants.PARTICLE_SPEED)
-            p.init(x, y, MathUtils.cos(angle) * speed, MathUtils.sin(angle) * speed)
-            particles.add(p)
-        }
-    }
-
-    private fun draw() {
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-
-        // Update camera to follow ship
-        camera.position.set(ship.position.x, ship.position.y, 0f)
-        camera.zoom = zoomFactor
-        camera.update()
-
-        // Render World (9 times for wrapping)
-        // Offsets: -1, 0, 1 for both X and Y
-        val w = Constants.WORLD_WIDTH
-        val h = Constants.WORLD_HEIGHT
-
-        for (xOffset in -1..1) {
-            for (yOffset in -1..1) {
-                // Shift camera matrix temporarily? No, easier to shift objects?
-                // Actually, shifting the projection matrix is cleaner if we want to reuse render code.
-                // Or we can just translate the camera position?
-                // No, camera is centered on ship. We want to draw the world at (0,0), (W,0), (-W,0), etc.
-                // So we can translate the batch/shapeRenderer transform matrix.
-                
-                val offsetX = xOffset * w
-                val offsetY = yOffset * h
-                
-                // We need to apply this offset to the camera's view matrix effectively.
-                // Or just translate the batch.
-                // Let's copy the camera combined matrix and translate it.
-                
-                val combined = camera.combined.cpy()
-                combined.translate(offsetX, offsetY, 0f)
-                
-                game.shapeRenderer.projectionMatrix = combined
-                game.batch.projectionMatrix = combined
-                
-                renderWorld()
-            }
-        }
-
-        // Render UI (fixed camera)
-        uiCamera.update()
-        game.batch.projectionMatrix = uiCamera.combined
-        game.shapeRenderer.projectionMatrix = uiCamera.combined
-
-        game.batch.begin()
-        val font = game.assets.getFont()
-        font.color = Constants.SHIP_COLOR
-        font.data.setScale(1.2f) // Larger for HUD readability
-        font.draw(game.batch, "Score: $score", 20f, Constants.WORLD_HEIGHT - 20f)
-        font.draw(game.batch, "Lv. ${playerStats.level}", 20f, Constants.WORLD_HEIGHT - 50f)
-        font.draw(game.batch, "HP: ${playerStats.currentHp}/${playerStats.maxHp}", 20f, Constants.WORLD_HEIGHT - 80f)
-        game.batch.end()
-
-        // XP Bar
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        game.shapeRenderer.color = com.badlogic.gdx.graphics.Color.DARK_GRAY
-        game.shapeRenderer.rect(20f, Constants.WORLD_HEIGHT - 70f, 200f, 10f)
-
-        if (playerStats.xpToNextLevel > 0) {
-            game.shapeRenderer.color = com.badlogic.gdx.graphics.Color.CYAN
-            val progress = playerStats.currentXp.toFloat() / playerStats.xpToNextLevel
-            game.shapeRenderer.rect(20f, Constants.WORLD_HEIGHT - 70f, 200f * progress, 10f)
-        }
-        game.shapeRenderer.end()
-
-        // Draw UI buttons using screen coordinates
-        drawUIButtons()
-    }
-
-    private fun renderWorld() {
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        // ship.render(game.shapeRenderer) // Removed shape renderer call for ship
-        for (asteroid in asteroids) asteroid.render(game.shapeRenderer)
-        game.shapeRenderer.end()
-
-        game.batch.begin()
-        ship.render(game.batch) // Added sprite batch call for ship
-        game.batch.end()
-
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        for (bullet in bullets) bullet.render(game.shapeRenderer)
-        for (particle in particles) particle.render(game.shapeRenderer)
-        game.shapeRenderer.end()
-    }
-
-    private fun drawUIButtons() {
-        // Use identity matrix for screen coordinates
-        // Actually, we can use uiCamera which is already set to world size (screen size)
-        // But the original code used setToOrtho2D(0,0, width, height) which is what uiCamera is.
-        // So we can just use uiCamera.combined.
-        
-        game.shapeRenderer.projectionMatrix = uiCamera.combined
-        game.batch.projectionMatrix = uiCamera.combined
-
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        // Draw thrust button
-        inputHandler.thrustButton.render(game.shapeRenderer)
-        // Draw joystick
-        inputHandler.joystick.render(game.shapeRenderer)
-        game.shapeRenderer.end()
-
-        // Draw filled circle when pressed
-        if (inputHandler.thrustButton.isPressed) {
-            game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-            val btn = inputHandler.thrustButton
-            game.shapeRenderer.color = btn.color.cpy().apply { a = 0.3f }
-            game.shapeRenderer.circle(btn.position.x, btn.position.y, btn.radius * 0.7f, 40)
-            game.shapeRenderer.end()
-        }
-
-        // Draw label on button
-        game.batch.begin()
-        val font = game.assets.getFont()
-        font.color = inputHandler.thrustButton.color
-        font.data.setScale(2.5f)
-        val btn = inputHandler.thrustButton
-        font.draw(
-            game.batch,
-            btn.label,
-            btn.position.x - 20f,
-            btn.position.y + 15f
-        )
-        game.batch.end()
-    }
-
-
     private fun grantXp(amount: Int) {
-        // Magnet bonus
         val bonusMultiplier = 1f + (0.05f * playerStats.magnetLevel)
         val finalXp = (amount * bonusMultiplier).toInt()
 
@@ -459,7 +141,7 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     private fun triggerLevelUp() {
         isPaused = true
         offeredUpgrades = rollUpgradeOptions()
-        levelUpMenuOpenedTime = 0f // Reset timer when menu opens
+        levelUpMenuOpenedTime = 0f
     }
 
     private fun rollUpgradeOptions(): List<UpgradeDefinition> {
@@ -474,7 +156,6 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         val currentLevel = playerStats.upgradeLevels.getOrDefault(def.id, 0)
         playerStats.upgradeLevels[def.id] = currentLevel + 1
 
-        // Apply stats
         when (def.id) {
             UpgradeId.DAMAGE -> playerStats.baseDamage *= 1.2f // +20%
             UpgradeId.FIRE_RATE -> playerStats.fireCooldown *= 0.88f // -12%
@@ -500,93 +181,5 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         }
 
         isPaused = false
-    }
-
-    private fun drawLevelUpOverlay() {
-        Gdx.gl.glEnable(GL20.GL_BLEND)
-
-        // Draw overlay and card backgrounds
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        game.shapeRenderer.color = com.badlogic.gdx.graphics.Color(0f, 0f, 0f, 0.9f)
-        game.shapeRenderer.rect(0f, 0f, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
-
-        val totalWidth = offeredUpgrades.size * cardWidth + (offeredUpgrades.size - 1) * cardSpacing
-        val startX = (Constants.WORLD_WIDTH - totalWidth) / 2f
-        val centerY = Constants.WORLD_HEIGHT / 2f
-
-        game.shapeRenderer.color = com.badlogic.gdx.graphics.Color.DARK_GRAY
-        for ((i, _) in offeredUpgrades.withIndex()) {
-            val x = startX + i * (cardWidth + cardSpacing)
-            val y = centerY - cardHeight / 2f
-            game.shapeRenderer.rect(x, y, cardWidth, cardHeight)
-        }
-        game.shapeRenderer.end()
-
-        // Draw card borders
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        game.shapeRenderer.color = com.badlogic.gdx.graphics.Color.WHITE
-        for ((i, _) in offeredUpgrades.withIndex()) {
-            val x = startX + i * (cardWidth + cardSpacing)
-            val y = centerY - cardHeight / 2f
-            game.shapeRenderer.rect(x, y, cardWidth, cardHeight)
-        }
-        game.shapeRenderer.end()
-
-        // 4. Draw Text
-        game.batch.begin()
-        val font = game.assets.getFont()
-        font.color = com.badlogic.gdx.graphics.Color.WHITE
-
-        // Title - Positioned above cards
-        val cardTop = centerY + cardHeight / 2f
-        font.data.setScale(4.5f) // Increased from 3.0f
-        font.draw(game.batch, "LEVEL UP!", 0f, cardTop + 80f, Constants.WORLD_WIDTH, com.badlogic.gdx.utils.Align.center, false)
-
-        for ((i, upgrade) in offeredUpgrades.withIndex()) {
-            val x = startX + i * (cardWidth + cardSpacing)
-
-            // Upgrade name
-            font.data.setScale(2.5f) // Increased from 1.8f
-            font.draw(game.batch, upgrade.displayName, x, cardTop - 60f, cardWidth, com.badlogic.gdx.utils.Align.center, false)
-
-            // Level indicator
-            val nextLevel = (playerStats.upgradeLevels[upgrade.id] ?: 0) + 1
-            font.data.setScale(1.8f) // Increased from 1.2f
-            font.draw(game.batch, "Level $nextLevel", x, cardTop - 130f, cardWidth, com.badlogic.gdx.utils.Align.center, false)
-
-            // Description
-            val desc = upgrade.descriptionPerLevel.getOrNull(nextLevel - 1) ?: ""
-            font.data.setScale(1.6f) // Increased from 1.2f
-            font.draw(game.batch, desc, x + 20f, cardTop - 200f, cardWidth - 40f, com.badlogic.gdx.utils.Align.center, true)
-        }
-        game.batch.end()
-    }
-
-    private fun handleUpgradeInput() {
-        // Block input for 750ms to prevent accidental selection
-        if (levelUpMenuOpenedTime < 0.75) {
-            return
-        }
-
-        if (Gdx.input.justTouched()) {
-            val touchX = Gdx.input.x.toFloat()
-            val touchY = Gdx.input.y.toFloat()
-
-            // Convert screen to world (UI coordinates)
-            val worldPos = uiCamera.unproject(com.badlogic.gdx.math.Vector3(touchX, touchY, 0f))
-
-            val startX = (Constants.WORLD_WIDTH - (offeredUpgrades.size * cardWidth + (offeredUpgrades.size - 1) * cardSpacing)) / 2f
-            val centerY = Constants.WORLD_HEIGHT / 2f
-            val cardY = centerY - cardHeight / 2f
-
-            for ((i, upgrade) in offeredUpgrades.withIndex()) {
-                val x = startX + i * (cardWidth + cardSpacing)
-                if (worldPos.x >= x && worldPos.x <= x + cardWidth &&
-                    worldPos.y >= cardY && worldPos.y <= cardY + cardHeight) {
-                    applyUpgrade(upgrade)
-                    break
-                }
-            }
-        }
     }
 }

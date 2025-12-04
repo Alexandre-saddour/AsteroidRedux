@@ -45,4 +45,38 @@ object Constants {
     // Particles
     const val PARTICLE_LIFETIME = 0.5f
     const val PARTICLE_SPEED = 100f
+
+    object UI {
+        // Card Layout
+        const val CARD_WIDTH = 350f
+        const val CARD_HEIGHT = 450f
+        const val CARD_SPACING = 40f
+
+        // Font Scales
+        const val FONT_SCALE_TITLE = 4.5f
+        const val FONT_SCALE_HEADER = 2.5f
+        const val FONT_SCALE_NORMAL = 1.6f
+        const val FONT_SCALE_SMALL = 1.2f // For HUD
+        const val FONT_SCALE_BUTTON = 2.5f
+
+        // Controls
+        const val JOYSTICK_RADIUS = 80f
+        const val BUTTON_RADIUS = 60f
+        
+        // Positioning (Percentages of screen)
+        const val JOYSTICK_X_PCT = 0.15f
+        const val JOYSTICK_Y_PCT = 0.35f
+        const val BUTTON_X_PCT = 0.85f
+        const val BUTTON_Y_PCT = 0.35f
+    }
+
+    object Game {
+        const val INITIAL_ASTEROID_COUNT = 3
+        const val LEVEL_UP_INPUT_DELAY = 0.75f
+        const val WAVE_SPAWN_MULTIPLIER = 2 // + level
+    }
+
+    object Rendering {
+        const val DEFAULT_ZOOM = 0.85f
+    }
 }

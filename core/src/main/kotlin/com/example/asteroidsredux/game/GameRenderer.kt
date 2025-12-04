@@ -1,0 +1,69 @@
+package com.example.asteroidsredux.game
+
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.example.asteroidsredux.utils.Constants
+
+class GameRenderer(
+    private val world: WorldManager,
+    private val batch: SpriteBatch,
+    private val shapeRenderer: ShapeRenderer
+) {
+    private val camera = OrthographicCamera()
+    var zoomFactor = Constants.Rendering.DEFAULT_ZOOM
+
+    init {
+        camera.setToOrtho(false, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
+    }
+
+    fun resize(width: Float, height: Float) {
+        camera.setToOrtho(false, width, height)
+    }
+
+    fun render() {
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
+        // Update camera to follow ship
+        camera.position.set(world.ship.position.x, world.ship.position.y, 0f)
+        camera.zoom = zoomFactor
+        camera.update()
+
+        // Render World (9 times for wrapping)
+        val w = Constants.WORLD_WIDTH
+        val h = Constants.WORLD_HEIGHT
+
+        for (xOffset in -1..1) {
+            for (yOffset in -1..1) {
+                val offsetX = xOffset * w
+                val offsetY = yOffset * h
+                
+                val combined = camera.combined.cpy()
+                combined.translate(offsetX, offsetY, 0f)
+                
+                shapeRenderer.projectionMatrix = combined
+                batch.projectionMatrix = combined
+                
+                renderWorld()
+            }
+        }
+    }
+
+    private fun renderWorld() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        for (asteroid in world.asteroids) asteroid.render(shapeRenderer)
+        shapeRenderer.end()
+
+        batch.begin()
+        world.ship.render(batch)
+        batch.end()
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+        for (bullet in world.bullets) bullet.render(shapeRenderer)
+        for (particle in world.particles) particle.render(shapeRenderer)
+        shapeRenderer.end()
+    }
+}

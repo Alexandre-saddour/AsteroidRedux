@@ -1,10 +1,10 @@
 package com.example.asteroidsredux.input
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.graphics.Color
+import com.example.asteroidsredux.utils.Constants
 
 class InputHandler : InputAdapter() {
     var isRotatingLeft = false
@@ -18,15 +18,15 @@ class InputHandler : InputAdapter() {
 
     // UI Controls
     val thrustButton = TouchButton(
-        position = Vector2(screenWidth * 0.85f, screenHeight * 0.35f),
-        radius = 60f,
+        position = Vector2(screenWidth * Constants.UI.BUTTON_X_PCT, screenHeight * Constants.UI.BUTTON_Y_PCT),
+        radius = Constants.UI.BUTTON_RADIUS,
         color = Color.CYAN,
         label = "↑"
     )
 
     val joystick = Joystick(
-        defaultPosition = Vector2(screenWidth * 0.15f, screenHeight * 0.35f),
-        baseRadius = 80f,
+        defaultPosition = Vector2(screenWidth * Constants.UI.JOYSTICK_X_PCT, screenHeight * Constants.UI.JOYSTICK_Y_PCT),
+        baseRadius = Constants.UI.JOYSTICK_RADIUS,
         color = Color.CYAN
     )
 
