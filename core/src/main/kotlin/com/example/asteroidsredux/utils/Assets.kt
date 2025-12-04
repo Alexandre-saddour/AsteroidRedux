@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.utils.Disposable
 import com.example.asteroidsredux.skins.AsteroidSkinCatalog
 import com.example.asteroidsredux.skins.AsteroidSkinId
+import com.example.asteroidsredux.skins.Skin
+import com.example.asteroidsredux.skins.SkinCategory
 import com.example.asteroidsredux.skins.ShipSkinCatalog
 import com.example.asteroidsredux.skins.ShipSkinId
 
@@ -17,15 +19,19 @@ class Assets : Disposable {
         manager.load("sounds/shoot.wav", Sound::class.java)
         manager.load("sounds/explosion.wav", Sound::class.java)
         
-        // Load all ship skin textures (skip empty ones like CLASSIC)
-        ShipSkinCatalog.skins.forEach { skin ->
-            if (skin.textureFileName.isNotEmpty()) {
-                manager.load(skin.textureFileName, Texture::class.java)
+        // Load all skin textures across all categories
+        loadAllSkinTextures()
+    }
+    
+    private fun loadAllSkinTextures() {
+        val allSkins: List<Skin> = SkinCategory.values().flatMap { category ->
+            when (category) {
+                SkinCategory.SHIP -> ShipSkinCatalog.skins
+                SkinCategory.ASTEROID -> AsteroidSkinCatalog.skins
             }
         }
         
-        // Load all asteroid skin textures (skip empty ones like CLASSIC)
-        AsteroidSkinCatalog.skins.forEach { skin ->
+        allSkins.forEach { skin ->
             if (skin.textureFileName.isNotEmpty()) {
                 manager.load(skin.textureFileName, Texture::class.java)
             }
@@ -40,29 +46,19 @@ class Assets : Disposable {
     fun getShootSound(): Sound = manager.get("sounds/shoot.wav", Sound::class.java)
     fun getExplosionSound(): Sound = manager.get("sounds/explosion.wav", Sound::class.java)
     
-    // Get texture for a specific skin ID
-    fun getShipTexture(skinId: ShipSkinId): Texture? {
-        val skin = ShipSkinCatalog.getSkin(skinId)
-        if (skin.textureFileName.isEmpty()) return null
-        return manager.get(skin.textureFileName, Texture::class.java)
-    }
-    
-    fun getAsteroidTexture(skinId: AsteroidSkinId): Texture? {
-        val skin = AsteroidSkinCatalog.getSkin(skinId)
-        if (skin.textureFileName.isEmpty()) return null
-        return manager.get(skin.textureFileName, Texture::class.java)
-    }
-    
     // Generic texture retrieval for any skin
-    fun getTexture(skin: com.example.asteroidsredux.skins.Skin): Texture? {
+    fun getTexture(skin: Skin): Texture? {
         if (skin.textureFileName.isEmpty()) return null
         return manager.get(skin.textureFileName, Texture::class.java)
     }
     
-    // Convenience method for backward compatibility (uses default skin)
+    // Type-specific convenience methods
+    fun getShipTexture(skinId: ShipSkinId): Texture? = getTexture(ShipSkinCatalog.getSkin(skinId))
+    fun getAsteroidTexture(skinId: AsteroidSkinId): Texture? = getTexture(AsteroidSkinCatalog.getSkin(skinId))
     fun getShipTexture(): Texture? = getShipTexture(ShipSkinId.DEFAULT)
 
     override fun dispose() {
         manager.dispose()
     }
 }
+
