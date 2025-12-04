@@ -24,18 +24,12 @@ class Assets : Disposable {
     }
     
     private fun loadAllSkinTextures() {
-        val allSkins: List<Skin> = SkinCategory.values().flatMap { category ->
-            when (category) {
-                SkinCategory.SHIP -> ShipSkinCatalog.skins
-                SkinCategory.ASTEROID -> AsteroidSkinCatalog.skins
-            }
-        }
-        
-        allSkins.forEach { skin ->
-            if (skin.textureFileName.isNotEmpty()) {
+        SkinCategory.values()
+            .flatMap { it.registry.skins }
+            .filter { it.textureFileName.isNotEmpty() }
+            .forEach { skin ->
                 manager.load(skin.textureFileName, Texture::class.java)
             }
-        }
     }
 
     fun finishLoading() {

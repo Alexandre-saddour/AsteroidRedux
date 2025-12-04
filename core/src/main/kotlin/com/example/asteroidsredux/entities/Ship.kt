@@ -12,6 +12,7 @@ import com.example.asteroidsredux.skins.SkinManager
 import com.example.asteroidsredux.utils.Assets
 import com.example.asteroidsredux.utils.Constants
 import com.example.asteroidsredux.utils.MathUtils2D
+import com.example.asteroidsredux.utils.SpriteRenderer
 
 class Ship(
     private val inputHandler: InputHandler,
@@ -120,24 +121,6 @@ class Ship(
         val tex = texture ?: return // Can't render sprite without texture
         
         val degrees = (angle * MathUtils.radiansToDegrees) - 90f
-
-        batch.draw(
-            tex,
-            position.x - Constants.SHIP_SIZE,
-            position.y - Constants.SHIP_SIZE,
-            Constants.SHIP_SIZE,
-            Constants.SHIP_SIZE,
-            Constants.SHIP_SIZE * 2,
-            Constants.SHIP_SIZE * 2,
-            1f,
-            1f,
-            degrees,
-            0,
-            0,
-            tex.width,
-            tex.height,
-            false,
-            false
-        )
+        SpriteRenderer.drawCentered(batch, tex, position.x, position.y, Constants.SHIP_SIZE, degrees)
     }
 }

@@ -39,12 +39,7 @@ class SkinManager {
     
     fun getSelectedSkinId(category: SkinCategory): String? = selectedSkins[category]
     
-    fun getSkinsForCategory(category: SkinCategory): List<Skin> {
-        return when (category) {
-            SkinCategory.SHIP -> ShipSkinCatalog.skins
-            SkinCategory.ASTEROID -> AsteroidSkinCatalog.skins
-        }
-    }
+    fun getSkinsForCategory(category: SkinCategory): List<Skin> = category.registry.skins
     
     fun addListener(category: SkinCategory, listener: (String) -> Unit) {
         listeners.getOrPut(category) { mutableListOf() }.add(listener)

@@ -1,107 +1,87 @@
 package com.example.asteroidsredux.screens
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.utils.Align
 import com.example.asteroidsredux.AsteroidsGame
+import com.example.asteroidsredux.utils.Button
+import com.example.asteroidsredux.utils.ButtonRenderer
 import com.example.asteroidsredux.utils.Constants
 
-class MenuScreen(private val game: AsteroidsGame) : ScreenAdapter() {
-    private val camera = OrthographicCamera()
+class MenuScreen(game: AsteroidsGame) : BaseScreen(game) {
     
-    private val playBtnWidth = 300f
-    private val playBtnHeight = 80f
-    private val customizeBtnWidth = 250f
-    private val customizeBtnHeight = 60f
-
-    init {
-        Constants.WORLD_WIDTH = Gdx.graphics.width.toFloat()
-        Constants.WORLD_HEIGHT = Gdx.graphics.height.toFloat()
-        camera.setToOrtho(false, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
-    }
-
-    override fun resize(width: Int, height: Int) {
-        Constants.WORLD_WIDTH = width.toFloat()
-        Constants.WORLD_HEIGHT = height.toFloat()
-        camera.setToOrtho(false, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
-    }
+    private val playButton = Button(
+        x = Constants.WORLD_WIDTH / 2 - 150f,
+        y = Constants.WORLD_HEIGHT / 2 - 20f,
+        width = 300f,
+        height = 80f,
+        text = "PLAY",
+        fillColor = Color.DARK_GRAY,
+        borderColor = Color.CYAN,
+        textColor = Color.CYAN,
+        textScale = 2.5f
+    )
+    
+    private val customizeButton = Button(
+        x = Constants.WORLD_WIDTH / 2 - 125f,
+        y = Constants.WORLD_HEIGHT / 2 - 130f,
+        width = 250f,
+        height = 60f,
+        text = "Customize",
+        fillColor = Color.DARK_GRAY.cpy().apply { a = 0.7f },
+        borderColor = Color.WHITE,
+        textColor = Color.WHITE,
+        textScale = 1.8f
+    )
 
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
-        camera.update()
-        game.batch.projectionMatrix = camera.combined
-        game.shapeRenderer.projectionMatrix = camera.combined
+        updateCamera()
 
         val centerX = Constants.WORLD_WIDTH / 2
         val centerY = Constants.WORLD_HEIGHT / 2
 
-        // Draw Play button
-        val playBtnX = centerX - playBtnWidth / 2
-        val playBtnY = centerY - 20f
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        game.shapeRenderer.color = Color.DARK_GRAY
-        game.shapeRenderer.rect(playBtnX, playBtnY, playBtnWidth, playBtnHeight)
-        game.shapeRenderer.end()
-        
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        game.shapeRenderer.color = Color.CYAN
-        game.shapeRenderer.rect(playBtnX, playBtnY, playBtnWidth, playBtnHeight)
-        game.shapeRenderer.end()
+        // Update button positions (in case of resize)
+        val playBtn = playButton.copy(
+            x = centerX - playButton.width / 2,
+            y = centerY - 20f
+        )
+        val customizeBtn = customizeButton.copy(
+            x = centerX - customizeButton.width / 2,
+            y = playBtn.y - customizeButton.height - 30f
+        )
 
-        // Draw Customize button
-        val customizeBtnX = centerX - customizeBtnWidth / 2
-        val customizeBtnY = playBtnY - customizeBtnHeight - 30f
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        game.shapeRenderer.color = Color.DARK_GRAY.cpy().apply { a = 0.7f }
-        game.shapeRenderer.rect(customizeBtnX, customizeBtnY, customizeBtnWidth, customizeBtnHeight)
-        game.shapeRenderer.end()
-        
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        game.shapeRenderer.color = Color.WHITE
-        game.shapeRenderer.rect(customizeBtnX, customizeBtnY, customizeBtnWidth, customizeBtnHeight)
-        game.shapeRenderer.end()
+        // Draw buttons
+        ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), playBtn)
+        ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), customizeBtn)
 
-        // Draw text
+        // Draw title
         game.batch.begin()
         val font = game.assets.getFont()
         font.color = Constants.SHIP_COLOR
         font.data.setScale(3f)
         font.draw(game.batch, "ASTEROIDS REDUX", 0f, centerY + 150f, Constants.WORLD_WIDTH, Align.center, false)
-        
-        font.data.setScale(2.5f)
-        font.color = Color.CYAN
-        font.draw(game.batch, "PLAY", playBtnX, playBtnY + playBtnHeight / 2 + 15f, playBtnWidth, Align.center, false)
-        
-        font.data.setScale(1.8f)
-        font.color = Color.WHITE
-        font.draw(game.batch, "Customize", customizeBtnX, customizeBtnY + customizeBtnHeight / 2 + 10f, customizeBtnWidth, Align.center, false)
         game.batch.end()
 
-        handleInput(playBtnX, playBtnY, customizeBtnX, customizeBtnY)
+        handleInput(playBtn, customizeBtn)
     }
 
-    private fun handleInput(playBtnX: Float, playBtnY: Float, customizeBtnX: Float, customizeBtnY: Float) {
+    private fun handleInput(playBtn: Button, customizeBtn: Button) {
         if (Gdx.input.justTouched()) {
-            val touchX = Gdx.input.x.toFloat()
-            val touchY = Constants.WORLD_HEIGHT - Gdx.input.y.toFloat()
+            val touchX = ButtonRenderer.getTouchX()
+            val touchY = ButtonRenderer.getTouchY()
 
-            // Check Play button
-            if (touchX >= playBtnX && touchX <= playBtnX + playBtnWidth &&
-                touchY >= playBtnY && touchY <= playBtnY + playBtnHeight) {
+            if (ButtonRenderer.isClicked(playBtn, touchX, touchY)) {
                 game.screen = GameScreen(game)
                 dispose()
                 return
             }
 
-            // Check Customize button
-            if (touchX >= customizeBtnX && touchX <= customizeBtnX + customizeBtnWidth &&
-                touchY >= customizeBtnY && touchY <= customizeBtnY + customizeBtnHeight) {
+            if (ButtonRenderer.isClicked(customizeBtn, touchX, touchY)) {
                 game.screen = SkinSelectionScreen(game)
                 dispose()
                 return

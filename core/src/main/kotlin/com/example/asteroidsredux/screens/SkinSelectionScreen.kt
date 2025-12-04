@@ -1,19 +1,16 @@
 package com.example.asteroidsredux.screens
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.utils.Align
 import com.example.asteroidsredux.AsteroidsGame
-import com.example.asteroidsredux.skins.Skin
 import com.example.asteroidsredux.skins.SkinCategory
+import com.example.asteroidsredux.utils.Button
+import com.example.asteroidsredux.utils.ButtonRenderer
 import com.example.asteroidsredux.utils.Constants
 
-class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
-    private val camera = OrthographicCamera()
+class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
     private var selectedCategory = SkinCategory.SHIP
     
     // Layout constants
@@ -23,15 +20,17 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     private val cardSpacing = 30f
     private val cardsPerRow = 3
 
-    init {
-        camera.setToOrtho(false, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
-    }
-
-    override fun resize(width: Int, height: Int) {
-        Constants.WORLD_WIDTH = width.toFloat()
-        Constants.WORLD_HEIGHT = height.toFloat()
-        camera.setToOrtho(false, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
-    }
+    private val backButton = Button(
+        x = 30f,
+        y = 30f,
+        width = 120f,
+        height = 40f,
+        text = "BACK",
+        fillColor = Color(0.2f, 0.2f, 0.3f, 1f),
+        borderColor = Color.GRAY,
+        textColor = Color.WHITE,
+        textScale = 1.5f
+    )
 
     override fun render(delta: Float) {
         // Gradient background
@@ -39,18 +38,17 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         game.shapeRenderer.rect(
             0f, 0f, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT,
-            Color.valueOf("0a0a1a"), Color.valueOf("0a0a1a"), // Bottom colors
-            Color.valueOf("1a1a3a"), Color.valueOf("1a1a3a")  // Top colors
+            Color.valueOf("0a0a1a"), Color.valueOf("0a0a1a"),
+            Color.valueOf("1a1a3a"), Color.valueOf("1a1a3a")
         )
         game.shapeRenderer.end()
 
-        camera.update()
-        game.batch.projectionMatrix = camera.combined
+        updateCamera()
         
         drawHeader()
         drawCategoryTabs()
         drawSkinGrid()
-        drawBackButton()
+        ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), backButton)
         
         handleInput()
     }
@@ -71,11 +69,9 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         val y = Constants.WORLD_HEIGHT - 120f
 
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        // Tab background line
         game.shapeRenderer.color = Color.DARK_GRAY
         game.shapeRenderer.rect(startX, y, categories.size * tabWidth, 2f)
         
-        // Selected tab indicator
         val selectedIndex = categories.indexOf(selectedCategory)
         game.shapeRenderer.color = Color.CYAN
         game.shapeRenderer.rect(startX + selectedIndex * tabWidth, y, tabWidth, 4f)
@@ -148,7 +144,6 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
             val isUnlocked = game.skinManager.isUnlocked(selectedCategory, skin.id)
             val isSelected = skin.id == selectedSkinId
 
-            // Skin Preview (Texture)
             val texture = game.assets.getTexture(skin)
             if (texture != null) {
                 val previewSize = 120f
@@ -161,7 +156,6 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
                 game.batch.setColor(Color.WHITE)
             }
 
-            // Text
             val font = game.assets.getFont()
             font.data.setScale(1.2f)
             font.color = if (isSelected) Color.CYAN else Color.WHITE
@@ -176,37 +170,13 @@ class SkinSelectionScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         game.batch.end()
     }
 
-    private fun drawBackButton() {
-        val btnWidth = 120f
-        val btnHeight = 40f
-        val x = 30f
-        val y = 30f
-
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        game.shapeRenderer.color = Color(0.2f, 0.2f, 0.3f, 1f)
-        game.shapeRenderer.rect(x, y, btnWidth, btnHeight)
-        game.shapeRenderer.end()
-
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        game.shapeRenderer.color = Color.GRAY
-        game.shapeRenderer.rect(x, y, btnWidth, btnHeight)
-        game.shapeRenderer.end()
-
-        game.batch.begin()
-        val font = game.assets.getFont()
-        font.color = Color.WHITE
-        font.data.setScale(1.5f)
-        font.draw(game.batch, "BACK", x, y + btnHeight / 2 + 8f, btnWidth, Align.center, false)
-        game.batch.end()
-    }
-
     private fun handleInput() {
         if (Gdx.input.justTouched()) {
-            val touchX = Gdx.input.x.toFloat()
-            val touchY = Constants.WORLD_HEIGHT - Gdx.input.y.toFloat()
+            val touchX = ButtonRenderer.getTouchX()
+            val touchY = ButtonRenderer.getTouchY()
 
             // Check back button
-            if (touchX < 160f && touchY < 80f) {
+            if (ButtonRenderer.isClicked(backButton, touchX, touchY)) {
                 game.screen = MenuScreen(game)
                 dispose()
                 return

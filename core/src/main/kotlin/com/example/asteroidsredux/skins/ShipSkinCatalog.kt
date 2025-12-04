@@ -1,11 +1,11 @@
 package com.example.asteroidsredux.skins
 
-object ShipSkinCatalog {
-    val skins: List<ShipSkin> = listOf(
+object ShipSkinCatalog : SkinRegistry<ShipSkin> {
+    override val skins: List<ShipSkin> = listOf(
         ShipSkin(
             id = ShipSkinId.CLASSIC,
             displayName = "Classic",
-            textureFileName = "", // No texture for classic (vector graphics)
+            textureFileName = "",
             unlockCondition = null
         ),
         ShipSkin(
@@ -14,16 +14,9 @@ object ShipSkinCatalog {
             textureFileName = "images/ship1.png",
             unlockCondition = null
         ),
-        // Add more skins here:
-        // ShipSkin(
-        //     id = ShipSkinId.PHANTOM,
-        //     displayName = "Phantom",
-        //     textureFileName = "images/ship_phantom.png",
-        //     unlockCondition = "Reach Level 10"
-        // ),
     )
 
-    fun getSkin(id: ShipSkinId): ShipSkin {
-        return skins.first { it.id == id.name }
-    }
+    override fun getSkin(id: String): ShipSkin = skins.first { it.id == id }
+    
+    fun getSkin(id: ShipSkinId): ShipSkin = getSkin(id.name)
 }

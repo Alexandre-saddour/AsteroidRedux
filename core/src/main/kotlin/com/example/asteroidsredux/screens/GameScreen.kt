@@ -1,7 +1,6 @@
 package com.example.asteroidsredux.screens
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.math.MathUtils
 import com.example.asteroidsredux.AsteroidsGame
 import com.example.asteroidsredux.entities.Bullet
@@ -17,7 +16,7 @@ import com.example.asteroidsredux.progression.UpgradeDefinition
 import com.example.asteroidsredux.progression.UpgradeId
 import com.example.asteroidsredux.utils.Constants
 
-class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
+class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
     private val inputHandler = InputHandler()
     private val playerStats = PlayerStats()
     private val ship = Ship(inputHandler, playerStats, game.assets, game.skinManager)
@@ -40,18 +39,12 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     private var levelUpMenuOpenedTime = 0f
 
     init {
-        // Init world dimensions
-        Constants.WORLD_HEIGHT = Gdx.graphics.height.toFloat()
-        Constants.WORLD_WIDTH = Gdx.graphics.width.toFloat()
-
         Gdx.input.inputProcessor = inputHandler
         worldManager.spawnAsteroids(Constants.Game.INITIAL_ASTEROID_COUNT)
     }
 
     override fun resize(width: Int, height: Int) {
-        Constants.WORLD_WIDTH = width.toFloat()
-        Constants.WORLD_HEIGHT = height.toFloat()
-        
+        super.resize(width, height)
         gameRenderer.resize(Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
         hud.resize(Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
     }

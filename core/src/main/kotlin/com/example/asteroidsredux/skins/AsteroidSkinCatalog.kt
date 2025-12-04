@@ -1,22 +1,22 @@
 package com.example.asteroidsredux.skins
 
-object AsteroidSkinCatalog {
-    val skins: List<AsteroidSkin> = listOf(
+object AsteroidSkinCatalog : SkinRegistry<AsteroidSkin> {
+    override val skins: List<AsteroidSkin> = listOf(
         AsteroidSkin(
             id = AsteroidSkinId.CLASSIC,
             displayName = "Classic",
-            textureFileName = "", // No texture for classic (vector graphics)
+            textureFileName = "",
             unlockCondition = null
         ),
         AsteroidSkin(
             id = AsteroidSkinId.ROCK,
             displayName = "Rock",
             textureFileName = "images/asteroid_rock.png",
-            unlockCondition = null // Unlocked by default for now
+            unlockCondition = null
         ),
     )
 
-    fun getSkin(id: AsteroidSkinId): AsteroidSkin {
-        return skins.first { it.id == id.name }
-    }
+    override fun getSkin(id: String): AsteroidSkin = skins.first { it.id == id }
+    
+    fun getSkin(id: AsteroidSkinId): AsteroidSkin = getSkin(id.name)
 }
