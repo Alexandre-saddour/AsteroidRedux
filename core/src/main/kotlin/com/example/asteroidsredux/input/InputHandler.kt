@@ -103,27 +103,9 @@ class InputHandler : InputAdapter() {
         return true
     }
 
-    // Call this in update loop to apply joystick rotation
-    fun updateRotation() {
-        val joyRotation = joystick.rotationValue
-
-        // Apply rotation based on joystick position
-        if (joyRotation < -0.1f) {
-            isRotatingLeft = true
-            isRotatingRight = false
-        } else if (joyRotation > 0.1f) {
-            isRotatingLeft = false
-            isRotatingRight = true
-        } else {
-            // Dead zone - no rotation from joystick
-            if (joystick.rotationValue == 0f) {
-                // Only reset if joystick is fully centered (not active)
-                // This allows keyboard controls to still work
-                isRotatingLeft = false
-                isRotatingRight = false
-            }
-        }
-    }
+    // Returns the target angle from the joystick, or null if not active
+    val targetAngle: Float?
+        get() = joystick.angle
 
     companion object {
         private const val autoshoot = true

@@ -71,8 +71,6 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     }
 
     private fun update(delta: Float) {
-        inputHandler.updateRotation()
-
         // Shooting Logic
         shootTimer -= delta
         if (inputHandler.isShooting && !ship.isDead) {

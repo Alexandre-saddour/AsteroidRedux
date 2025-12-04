@@ -21,12 +21,25 @@ class Ship(private val inputHandler: InputHandler, private val stats: PlayerStat
     fun update(delta: Float) {
         if (isDead) return
 
-        // Rotation
-        if (inputHandler.isRotatingLeft) {
-            angle += Constants.SHIP_ROTATION_SPEED * delta
-        }
-        if (inputHandler.isRotatingRight) {
-            angle -= Constants.SHIP_ROTATION_SPEED * delta
+        // Rotation - rotate towards joystick direction if active
+        val targetAngle = inputHandler.targetAngle
+        if (targetAngle != null) {
+            // Calculate shortest rotation direction
+            var angleDiff = targetAngle - angle
+            
+            // Normalize to [-PI, PI]
+            while (angleDiff > MathUtils.PI) angleDiff -= MathUtils.PI2
+            while (angleDiff < -MathUtils.PI) angleDiff += MathUtils.PI2
+            
+            // Rotate towards target at rotation speed
+            val maxRotation = Constants.SHIP_ROTATION_SPEED * delta
+            if (kotlin.math.abs(angleDiff) < maxRotation) {
+                angle = targetAngle
+            } else if (angleDiff > 0) {
+                angle += maxRotation
+            } else {
+                angle -= maxRotation
+            }
         }
 
         // Thrust
