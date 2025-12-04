@@ -7,13 +7,13 @@ package com.example.asteroidsredux.skins
 class SkinManager {
     // Unlocked skins per category: Map<Category, Set<SkinId>>
     private val unlockedSkins = mutableMapOf<SkinCategory, MutableSet<String>>().apply {
-        put(SkinCategory.SHIP, mutableSetOf(ShipSkinId.DEFAULT.name))
+        put(SkinCategory.SHIP, mutableSetOf(ShipSkinId.CLASSIC.name, ShipSkinId.DEFAULT.name))
         put(SkinCategory.ASTEROID, mutableSetOf(AsteroidSkinId.CLASSIC.name, AsteroidSkinId.ROCK.name))
     }
     
     // Selected skin per category: Map<Category, SkinId>
     private val selectedSkins = mutableMapOf<SkinCategory, String>().apply {
-        put(SkinCategory.SHIP, ShipSkinId.DEFAULT.name)
+        put(SkinCategory.SHIP, ShipSkinId.CLASSIC.name)
         put(SkinCategory.ASTEROID, AsteroidSkinId.CLASSIC.name)
     }
     

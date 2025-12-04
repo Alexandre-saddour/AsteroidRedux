@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.example.asteroidsredux.skins.AsteroidSkinId
+import com.example.asteroidsredux.skins.ShipSkinId
 import com.example.asteroidsredux.skins.SkinManager
 import com.example.asteroidsredux.utils.Assets
 import com.example.asteroidsredux.utils.Constants
@@ -59,17 +60,26 @@ class GameRenderer(
 
     private fun renderWorld() {
         val asteroidSkinId = skinManager.selectedAsteroidSkinId
+        val shipSkinId = skinManager.selectedShipSkinId
         
-        // Render Asteroids (Classic)
+        // Render Classic (Line-based) entities
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         if (asteroidSkinId == AsteroidSkinId.CLASSIC) {
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
             for (asteroid in world.asteroids) asteroid.render(shapeRenderer)
-            shapeRenderer.end()
         }
+        shapeRenderer.end()
+        
+        // Render Classic (Filled) entities - Ship uses filled triangle
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+        if (shipSkinId == ShipSkinId.CLASSIC) {
+            world.ship.render(shapeRenderer)
+        }
+        shapeRenderer.end()
 
+        // Render Sprite-based entities
         batch.begin()
         
-        // Render Asteroids (Sprite)
+        // Asteroids (Sprite)
         if (asteroidSkinId != AsteroidSkinId.CLASSIC) {
             val texture = assets.getAsteroidTexture(asteroidSkinId)
             if (texture != null) {
@@ -77,9 +87,14 @@ class GameRenderer(
             }
         }
         
-        world.ship.render(batch)
+        // Ship (Sprite)
+        if (shipSkinId != ShipSkinId.CLASSIC) {
+            world.ship.render(batch)
+        }
+        
         batch.end()
 
+        // Render Bullets and Particles
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         for (bullet in world.bullets) bullet.render(shapeRenderer)
         for (particle in world.particles) particle.render(shapeRenderer)

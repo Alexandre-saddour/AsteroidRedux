@@ -17,9 +17,11 @@ class Assets : Disposable {
         manager.load("sounds/shoot.wav", Sound::class.java)
         manager.load("sounds/explosion.wav", Sound::class.java)
         
-        // Load all ship skin textures from the catalog
+        // Load all ship skin textures (skip empty ones like CLASSIC)
         ShipSkinCatalog.skins.forEach { skin ->
-            manager.load(skin.textureFileName, Texture::class.java)
+            if (skin.textureFileName.isNotEmpty()) {
+                manager.load(skin.textureFileName, Texture::class.java)
+            }
         }
         
         // Load all asteroid skin textures (skip empty ones like CLASSIC)
@@ -39,8 +41,9 @@ class Assets : Disposable {
     fun getExplosionSound(): Sound = manager.get("sounds/explosion.wav", Sound::class.java)
     
     // Get texture for a specific skin ID
-    fun getShipTexture(skinId: ShipSkinId): Texture {
+    fun getShipTexture(skinId: ShipSkinId): Texture? {
         val skin = ShipSkinCatalog.getSkin(skinId)
+        if (skin.textureFileName.isEmpty()) return null
         return manager.get(skin.textureFileName, Texture::class.java)
     }
     
@@ -57,7 +60,7 @@ class Assets : Disposable {
     }
     
     // Convenience method for backward compatibility (uses default skin)
-    fun getShipTexture(): Texture = getShipTexture(ShipSkinId.DEFAULT)
+    fun getShipTexture(): Texture? = getShipTexture(ShipSkinId.DEFAULT)
 
     override fun dispose() {
         manager.dispose()

@@ -2,6 +2,7 @@ package com.example.asteroidsredux.entities
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.example.asteroidsredux.input.InputHandler
@@ -16,7 +17,7 @@ class Ship(
     private val inputHandler: InputHandler,
     private val stats: PlayerStats,
     private val assets: Assets,
-    private val skinManager: SkinManager
+    val skinManager: SkinManager
 ) {
     val position = Vector2(Constants.WORLD_WIDTH / 2, Constants.WORLD_HEIGHT / 2)
     val velocity = Vector2()
@@ -24,8 +25,8 @@ class Ship(
     val nose = Vector2()
     var isDead = false
     
-    // Current texture, updated when skin changes
-    private var texture: Texture = assets.getShipTexture(skinManager.selectedShipSkinId)
+    // Current texture (null for classic skin)
+    private var texture: Texture? = assets.getShipTexture(skinManager.selectedShipSkinId)
     
     init {
         // Listen for skin changes
@@ -90,13 +91,38 @@ class Ship(
         nose.set(Constants.SHIP_SIZE, 0f).rotateRad(angle).add(position)
     }
 
+    // Classic (polygon) rendering
+    fun render(shapeRenderer: ShapeRenderer) {
+        if (isDead) return
+        
+        shapeRenderer.color = Constants.SHIP_COLOR
+        
+        // Triangle ship pointing in direction of angle
+        val size = Constants.SHIP_SIZE
+        val x = position.x
+        val y = position.y
+        
+        // Calculate triangle vertices
+        val tipX = x + MathUtils.cos(angle) * size
+        val tipY = y + MathUtils.sin(angle) * size
+        val leftX = x + MathUtils.cos(angle + MathUtils.PI * 0.8f) * size * 0.7f
+        val leftY = y + MathUtils.sin(angle + MathUtils.PI * 0.8f) * size * 0.7f
+        val rightX = x + MathUtils.cos(angle - MathUtils.PI * 0.8f) * size * 0.7f
+        val rightY = y + MathUtils.sin(angle - MathUtils.PI * 0.8f) * size * 0.7f
+        
+        shapeRenderer.triangle(tipX, tipY, leftX, leftY, rightX, rightY)
+    }
+
+    // Sprite rendering
     fun render(batch: SpriteBatch) {
         if (isDead) return
+        
+        val tex = texture ?: return // Can't render sprite without texture
         
         val degrees = (angle * MathUtils.radiansToDegrees) - 90f
 
         batch.draw(
-            texture,
+            tex,
             position.x - Constants.SHIP_SIZE,
             position.y - Constants.SHIP_SIZE,
             Constants.SHIP_SIZE,
@@ -108,8 +134,8 @@ class Ship(
             degrees,
             0,
             0,
-            texture.width,
-            texture.height,
+            tex.width,
+            tex.height,
             false,
             false
         )
