@@ -1,5 +1,7 @@
 package com.example.asteroidsredux.entities
 
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
@@ -9,7 +11,7 @@ import com.example.asteroidsredux.utils.MathUtils2D
 
 import com.example.asteroidsredux.progression.PlayerStats
 
-class Ship(private val inputHandler: InputHandler, private val stats: PlayerStats) {
+class Ship(private val inputHandler: InputHandler, private val stats: PlayerStats, private val texture: Texture) {
     val position = Vector2(Constants.WORLD_WIDTH / 2, Constants.WORLD_HEIGHT / 2)
     val velocity = Vector2()
     var angle = MathUtils.PI / 2 // Pointing up
@@ -31,6 +33,15 @@ class Ship(private val inputHandler: InputHandler, private val stats: PlayerStat
         if (inputHandler.isThrusting) {
             val thrust = Vector2(stats.shipAcceleration * delta, 0f).rotateRad(angle)
             velocity.add(thrust)
+        } else {
+            // Apply deceleration/friction when not thrusting
+            val deceleration = 0.99f // Friction coefficient (lower = more friction)
+            velocity.scl(deceleration)
+
+            // Stop completely if velocity is very small
+            if (velocity.len() < 1f) {
+                velocity.set(0f, 0f)
+            }
         }
 
         // Cap speed
@@ -46,20 +57,34 @@ class Ship(private val inputHandler: InputHandler, private val stats: PlayerStat
         nose.set(Constants.SHIP_SIZE, 0f).rotateRad(angle).add(position)
     }
 
-    fun render(shapeRenderer: ShapeRenderer) {
+    fun render(batch: SpriteBatch) {
         if (isDead) return
-        shapeRenderer.color = Constants.SHIP_COLOR
         
-        // Draw triangle
-        val x1 = position.x + MathUtils.cos(angle) * Constants.SHIP_SIZE
-        val y1 = position.y + MathUtils.sin(angle) * Constants.SHIP_SIZE
-        
-        val x2 = position.x + MathUtils.cos(angle + 2.5f) * Constants.SHIP_SIZE
-        val y2 = position.y + MathUtils.sin(angle + 2.5f) * Constants.SHIP_SIZE
-        
-        val x3 = position.x + MathUtils.cos(angle - 2.5f) * Constants.SHIP_SIZE
-        val y3 = position.y + MathUtils.sin(angle - 2.5f) * Constants.SHIP_SIZE
+        // Draw texture centered on position, rotated by angle
+        // angle is in radians, batch.draw takes degrees
+        // Sprite points Up (presumably), so we need to subtract 90 degrees to align with 0 degrees (East)
+        val degrees = (angle * MathUtils.radiansToDegrees) - 90f
 
-        shapeRenderer.triangle(x1, y1, x2, y2, x3, y3)
+        batch.draw(
+            texture,
+            position.x - Constants.SHIP_SIZE,
+            position.y - Constants.SHIP_SIZE,
+            Constants.SHIP_SIZE, // originX (center of rotation relative to x,y)
+            Constants.SHIP_SIZE, // originY
+            Constants.SHIP_SIZE * 2, // width
+            Constants.SHIP_SIZE * 2, // height
+            1f, // scaleX
+            1f, // scaleY
+            degrees,
+            0,
+            0,
+            texture.width,
+            texture.height,
+            false,
+            false
+        )
     }
+    
+    // Keep shape renderer for debug or other uses if needed, but for now we replace it
+    // Or we can overload if we want to support both, but let's stick to the plan.
 }

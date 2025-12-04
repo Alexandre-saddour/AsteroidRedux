@@ -12,6 +12,7 @@ class Assets : Disposable {
         // manager.load("fonts/default.fnt", BitmapFont::class.java) // Use default font
         manager.load("sounds/shoot.wav", Sound::class.java)
         manager.load("sounds/explosion.wav", Sound::class.java)
+        manager.load("images/ship.png", com.badlogic.gdx.graphics.Texture::class.java)
     }
 
     fun finishLoading() {
@@ -21,6 +22,7 @@ class Assets : Disposable {
     fun getFont(): BitmapFont = BitmapFont() // Use default LibGDX font
     fun getShootSound(): Sound = manager.get("sounds/shoot.wav", Sound::class.java)
     fun getExplosionSound(): Sound = manager.get("sounds/explosion.wav", Sound::class.java)
+    fun getShipTexture(): com.badlogic.gdx.graphics.Texture = manager.get("images/ship.png", com.badlogic.gdx.graphics.Texture::class.java)
 
     override fun dispose() {
         manager.dispose()

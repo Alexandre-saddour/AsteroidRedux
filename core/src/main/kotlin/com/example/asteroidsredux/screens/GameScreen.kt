@@ -25,11 +25,15 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     private val inputHandler = InputHandler()
 
     private val playerStats = PlayerStats()
-    private val ship = Ship(inputHandler, playerStats)
+    private val ship = Ship(inputHandler, playerStats, game.assets.getShipTexture())
 
     private val asteroids = Array<Asteroid>()
     private val bullets = Array<Bullet>()
     private val particles = Array<Particle>()
+    
+    // Temporary arrays to avoid nested iteration issues
+    private val asteroidsToAdd = Array<Asteroid>()
+    private val asteroidsToRemove = Array<Asteroid>()
 
     private var score = 0
     // Level tracked in playerStats
@@ -124,6 +128,17 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         }
 
         checkCollisions()
+        
+        // Apply deferred asteroid operations (to avoid nested iteration)
+        for (asteroid in asteroidsToRemove) {
+            asteroids.removeValue(asteroid, true)
+        }
+        asteroidsToRemove.clear()
+        
+        for (asteroid in asteroidsToAdd) {
+            asteroids.add(asteroid)
+        }
+        asteroidsToAdd.clear()
 
         if (asteroids.size == 0) {
             // Wave clear logic? Maybe just spawn more.
@@ -247,13 +262,15 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         when (asteroid.size) {
             Constants.ASTEROID_SIZE_LARGE -> {
                 score += Constants.ASTEROID_SCORE_LARGE
-                asteroids.add(Asteroid(Constants.ASTEROID_SIZE_MEDIUM, asteroid.position.x, asteroid.position.y))
-                asteroids.add(Asteroid(Constants.ASTEROID_SIZE_MEDIUM, asteroid.position.x, asteroid.position.y))
+                // Defer adding new asteroids to avoid nested iteration
+                asteroidsToAdd.add(Asteroid(Constants.ASTEROID_SIZE_MEDIUM, asteroid.position.x, asteroid.position.y))
+                asteroidsToAdd.add(Asteroid(Constants.ASTEROID_SIZE_MEDIUM, asteroid.position.x, asteroid.position.y))
             }
             Constants.ASTEROID_SIZE_MEDIUM -> {
                 score += Constants.ASTEROID_SCORE_MEDIUM
-                asteroids.add(Asteroid(Constants.ASTEROID_SIZE_SMALL, asteroid.position.x, asteroid.position.y))
-                asteroids.add(Asteroid(Constants.ASTEROID_SIZE_SMALL, asteroid.position.x, asteroid.position.y))
+                // Defer adding new asteroids to avoid nested iteration
+                asteroidsToAdd.add(Asteroid(Constants.ASTEROID_SIZE_SMALL, asteroid.position.x, asteroid.position.y))
+                asteroidsToAdd.add(Asteroid(Constants.ASTEROID_SIZE_SMALL, asteroid.position.x, asteroid.position.y))
             }
             Constants.ASTEROID_SIZE_SMALL -> {
                 score += Constants.ASTEROID_SCORE_SMALL
@@ -265,16 +282,16 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
             val baseRadius = 80f
             val radius = baseRadius * (1f + 0.25f * playerStats.explosionRadiusLevel)
 
-            val nearbyAsteroids = asteroids.filter {
-                it.active && it.position.dst(asteroid.position) <= radius
-            }
-
-            for (nearby in nearbyAsteroids) {
-                // Only destroy small asteroids with explosion
-                if (nearby.size == Constants.ASTEROID_SIZE_SMALL) {
-                    nearby.active = false
-                    asteroids.removeValue(nearby, true)
-                    handleAsteroidDestruction(nearby) // Recursive for XP and potential chain reactions
+            // Use a snapshot to avoid nested iteration
+            val snapshot = Array<Asteroid>(asteroids)
+            for (nearby in snapshot) {
+                if (nearby.active && nearby.position.dst(asteroid.position) <= radius) {
+                    // Only destroy small asteroids with explosion
+                    if (nearby.size == Constants.ASTEROID_SIZE_SMALL) {
+                        nearby.active = false
+                        asteroidsToRemove.add(nearby)
+                        handleAsteroidDestruction(nearby) // Recursive for XP and potential chain reactions
+                    }
                 }
             }
         }
@@ -299,9 +316,13 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         game.batch.projectionMatrix = camera.combined
 
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        ship.render(game.shapeRenderer)
+        // ship.render(game.shapeRenderer) // Removed shape renderer call for ship
         for (asteroid in asteroids) asteroid.render(game.shapeRenderer)
         game.shapeRenderer.end()
+
+        game.batch.begin()
+        ship.render(game.batch) // Added sprite batch call for ship
+        game.batch.end()
 
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         for (bullet in bullets) bullet.render(game.shapeRenderer)
