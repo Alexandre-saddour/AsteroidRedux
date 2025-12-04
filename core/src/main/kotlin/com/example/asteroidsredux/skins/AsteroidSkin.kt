@@ -2,7 +2,8 @@ package com.example.asteroidsredux.skins
 
 enum class AsteroidSkinId {
     CLASSIC,
-    ROCK,
+    ROCK1,
+    ROCK2,
     // Add more skins here
     // ICE,
     // LAVA,
@@ -20,6 +21,6 @@ data class AsteroidSkin(
         textureFileName: String,
         unlockCondition: String? = null
     ) : this(id.name, displayName, textureFileName, unlockCondition)
-    
+
     val skinId: AsteroidSkinId get() = AsteroidSkinId.valueOf(id)
 }

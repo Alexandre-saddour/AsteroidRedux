@@ -18,11 +18,11 @@ class Assets : Disposable {
     fun load() {
         manager.load("sounds/shoot.wav", Sound::class.java)
         manager.load("sounds/explosion.wav", Sound::class.java)
-        
+
         // Load all skin textures across all categories
         loadAllSkinTextures()
     }
-    
+
     private fun loadAllSkinTextures() {
         SkinCategory.values()
             .flatMap { it.registry.skins }
@@ -39,17 +39,17 @@ class Assets : Disposable {
     fun getFont(): BitmapFont = BitmapFont()
     fun getShootSound(): Sound = manager.get("sounds/shoot.wav", Sound::class.java)
     fun getExplosionSound(): Sound = manager.get("sounds/explosion.wav", Sound::class.java)
-    
+
     // Generic texture retrieval for any skin
     fun getTexture(skin: Skin): Texture? {
         if (skin.textureFileName.isEmpty()) return null
         return manager.get(skin.textureFileName, Texture::class.java)
     }
-    
+
     // Type-specific convenience methods
     fun getShipTexture(skinId: ShipSkinId): Texture? = getTexture(ShipSkinCatalog.getSkin(skinId))
     fun getAsteroidTexture(skinId: AsteroidSkinId): Texture? = getTexture(AsteroidSkinCatalog.getSkin(skinId))
-    fun getShipTexture(): Texture? = getShipTexture(ShipSkinId.DEFAULT)
+    fun getShipTexture(): Texture? = getShipTexture(ShipSkinId.SHIP_1)
 
     override fun dispose() {
         manager.dispose()

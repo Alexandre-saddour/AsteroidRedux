@@ -1,6 +1,7 @@
 package com.example.asteroidsredux.screens
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.math.MathUtils
 import com.example.asteroidsredux.AsteroidsGame
 import com.example.asteroidsredux.entities.Bullet
@@ -50,6 +51,13 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
     }
 
     override fun render(delta: Float) {
+        // Handle back button to return to menu
+        if (Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
+            game.screen = MenuScreen(game)
+            dispose()
+            return
+        }
+
         if (!isPaused) {
             update(delta)
         } else {
