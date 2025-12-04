@@ -15,12 +15,14 @@ import com.example.asteroidsredux.progression.PlayerStats
 import com.example.asteroidsredux.progression.UpgradeCatalog
 import com.example.asteroidsredux.progression.UpgradeDefinition
 import com.example.asteroidsredux.progression.UpgradeId
+import com.example.asteroidsredux.skins.SkinManager
 import com.example.asteroidsredux.utils.Constants
 
 class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     private val inputHandler = InputHandler()
     private val playerStats = PlayerStats()
-    private val ship = Ship(inputHandler, playerStats, game.assets.getShipTexture())
+    private val skinManager = SkinManager()
+    private val ship = Ship(inputHandler, playerStats, game.assets, skinManager)
 
     // Architectural Components
     private val worldManager = WorldManager(ship)

@@ -2,21 +2,42 @@ package com.example.asteroidsredux.entities
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.example.asteroidsredux.input.InputHandler
+import com.example.asteroidsredux.progression.PlayerStats
+import com.example.asteroidsredux.skins.ShipSkinId
+import com.example.asteroidsredux.skins.SkinManager
+import com.example.asteroidsredux.utils.Assets
 import com.example.asteroidsredux.utils.Constants
 import com.example.asteroidsredux.utils.MathUtils2D
 
-import com.example.asteroidsredux.progression.PlayerStats
-
-class Ship(private val inputHandler: InputHandler, private val stats: PlayerStats, private val texture: Texture) {
+class Ship(
+    private val inputHandler: InputHandler,
+    private val stats: PlayerStats,
+    private val assets: Assets,
+    private val skinManager: SkinManager
+) {
     val position = Vector2(Constants.WORLD_WIDTH / 2, Constants.WORLD_HEIGHT / 2)
     val velocity = Vector2()
     var angle = MathUtils.PI / 2 // Pointing up
     val nose = Vector2()
     var isDead = false
+    
+    // Current texture, updated when skin changes
+    private var texture: Texture = assets.getShipTexture(skinManager.selectedSkinId)
+    
+    init {
+        // Listen for skin changes
+        skinManager.addSkinChangeListener { skinId ->
+            texture = assets.getShipTexture(skinId)
+        }
+    }
+    
+    // Manual skin switching (if needed without going through SkinManager)
+    fun setSkin(skinId: ShipSkinId) {
+        texture = assets.getShipTexture(skinId)
+    }
 
     fun update(delta: Float) {
         if (isDead) return
@@ -48,10 +69,9 @@ class Ship(private val inputHandler: InputHandler, private val stats: PlayerStat
             velocity.add(thrust)
         } else {
             // Apply deceleration/friction when not thrusting
-            val deceleration = 0.99f // Friction coefficient (lower = more friction)
+            val deceleration = 0.99f
             velocity.scl(deceleration)
 
-            // Stop completely if velocity is very small
             if (velocity.len() < 1f) {
                 velocity.set(0f, 0f)
             }
@@ -73,21 +93,18 @@ class Ship(private val inputHandler: InputHandler, private val stats: PlayerStat
     fun render(batch: SpriteBatch) {
         if (isDead) return
         
-        // Draw texture centered on position, rotated by angle
-        // angle is in radians, batch.draw takes degrees
-        // Sprite points Up (presumably), so we need to subtract 90 degrees to align with 0 degrees (East)
         val degrees = (angle * MathUtils.radiansToDegrees) - 90f
 
         batch.draw(
             texture,
             position.x - Constants.SHIP_SIZE,
             position.y - Constants.SHIP_SIZE,
-            Constants.SHIP_SIZE, // originX (center of rotation relative to x,y)
-            Constants.SHIP_SIZE, // originY
-            Constants.SHIP_SIZE * 2, // width
-            Constants.SHIP_SIZE * 2, // height
-            1f, // scaleX
-            1f, // scaleY
+            Constants.SHIP_SIZE,
+            Constants.SHIP_SIZE,
+            Constants.SHIP_SIZE * 2,
+            Constants.SHIP_SIZE * 2,
+            1f,
+            1f,
             degrees,
             0,
             0,
@@ -97,7 +114,4 @@ class Ship(private val inputHandler: InputHandler, private val stats: PlayerStat
             false
         )
     }
-    
-    // Keep shape renderer for debug or other uses if needed, but for now we replace it
-    // Or we can overload if we want to support both, but let's stick to the plan.
 }
