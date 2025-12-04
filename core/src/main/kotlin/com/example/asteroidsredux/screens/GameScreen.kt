@@ -22,6 +22,9 @@ import com.example.asteroidsredux.progression.UpgradeId
 
 class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
     private val camera = OrthographicCamera()
+    private val uiCamera = OrthographicCamera() // Camera for UI
+    private var zoomFactor = 0.85f // Zoom level (smaller is closer)
+
     private val inputHandler = InputHandler()
 
     private val playerStats = PlayerStats()
@@ -51,6 +54,7 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         Constants.WORLD_HEIGHT = Gdx.graphics.height.toFloat()
         Constants.WORLD_WIDTH = Gdx.graphics.width.toFloat()
         camera.setToOrtho(false, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
+        uiCamera.setToOrtho(false, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT) // Init UI camera
         Gdx.input.inputProcessor = inputHandler
         spawnAsteroids(3)
     }
@@ -311,23 +315,45 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
+        // Update camera to follow ship
+        camera.position.set(ship.position.x, ship.position.y, 0f)
+        camera.zoom = zoomFactor
         camera.update()
-        game.shapeRenderer.projectionMatrix = camera.combined
-        game.batch.projectionMatrix = camera.combined
 
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        // ship.render(game.shapeRenderer) // Removed shape renderer call for ship
-        for (asteroid in asteroids) asteroid.render(game.shapeRenderer)
-        game.shapeRenderer.end()
+        // Render World (9 times for wrapping)
+        // Offsets: -1, 0, 1 for both X and Y
+        val w = Constants.WORLD_WIDTH
+        val h = Constants.WORLD_HEIGHT
 
-        game.batch.begin()
-        ship.render(game.batch) // Added sprite batch call for ship
-        game.batch.end()
+        for (xOffset in -1..1) {
+            for (yOffset in -1..1) {
+                // Shift camera matrix temporarily? No, easier to shift objects?
+                // Actually, shifting the projection matrix is cleaner if we want to reuse render code.
+                // Or we can just translate the camera position?
+                // No, camera is centered on ship. We want to draw the world at (0,0), (W,0), (-W,0), etc.
+                // So we can translate the batch/shapeRenderer transform matrix.
+                
+                val offsetX = xOffset * w
+                val offsetY = yOffset * h
+                
+                // We need to apply this offset to the camera's view matrix effectively.
+                // Or just translate the batch.
+                // Let's copy the camera combined matrix and translate it.
+                
+                val combined = camera.combined.cpy()
+                combined.translate(offsetX, offsetY, 0f)
+                
+                game.shapeRenderer.projectionMatrix = combined
+                game.batch.projectionMatrix = combined
+                
+                renderWorld()
+            }
+        }
 
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        for (bullet in bullets) bullet.render(game.shapeRenderer)
-        for (particle in particles) particle.render(game.shapeRenderer)
-        game.shapeRenderer.end()
+        // Render UI (fixed camera)
+        uiCamera.update()
+        game.batch.projectionMatrix = uiCamera.combined
+        game.shapeRenderer.projectionMatrix = uiCamera.combined
 
         game.batch.begin()
         val font = game.assets.getFont()
@@ -354,11 +380,30 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         drawUIButtons()
     }
 
+    private fun renderWorld() {
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        // ship.render(game.shapeRenderer) // Removed shape renderer call for ship
+        for (asteroid in asteroids) asteroid.render(game.shapeRenderer)
+        game.shapeRenderer.end()
+
+        game.batch.begin()
+        ship.render(game.batch) // Added sprite batch call for ship
+        game.batch.end()
+
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+        for (bullet in bullets) bullet.render(game.shapeRenderer)
+        for (particle in particles) particle.render(game.shapeRenderer)
+        game.shapeRenderer.end()
+    }
+
     private fun drawUIButtons() {
         // Use identity matrix for screen coordinates
-        game.shapeRenderer.projectionMatrix = com.badlogic.gdx.math.Matrix4().setToOrtho2D(
-            0f, 0f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()
-        )
+        // Actually, we can use uiCamera which is already set to world size (screen size)
+        // But the original code used setToOrtho2D(0,0, width, height) which is what uiCamera is.
+        // So we can just use uiCamera.combined.
+        
+        game.shapeRenderer.projectionMatrix = uiCamera.combined
+        game.batch.projectionMatrix = uiCamera.combined
 
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         // Draw thrust button
@@ -377,9 +422,6 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
         }
 
         // Draw label on button
-        game.batch.projectionMatrix = com.badlogic.gdx.math.Matrix4().setToOrtho2D(
-            0f, 0f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()
-        )
         game.batch.begin()
         val font = game.assets.getFont()
         font.color = inputHandler.thrustButton.color
@@ -530,8 +572,8 @@ class GameScreen(private val game: AsteroidsGame) : ScreenAdapter() {
             val touchX = Gdx.input.x.toFloat()
             val touchY = Gdx.input.y.toFloat()
 
-            // Convert screen to world
-            val worldPos = camera.unproject(com.badlogic.gdx.math.Vector3(touchX, touchY, 0f))
+            // Convert screen to world (UI coordinates)
+            val worldPos = uiCamera.unproject(com.badlogic.gdx.math.Vector3(touchX, touchY, 0f))
 
             val startX = (Constants.WORLD_WIDTH - (offeredUpgrades.size * cardWidth + (offeredUpgrades.size - 1) * cardSpacing)) / 2f
             val centerY = Constants.WORLD_HEIGHT / 2f
