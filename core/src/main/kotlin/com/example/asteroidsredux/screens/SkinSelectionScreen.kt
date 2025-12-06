@@ -86,12 +86,12 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
 
         // Scroll background
         bgScrollX += bgScrollSpeed * delta
-        if (bgScrollX > bgStars.width) bgScrollX = 0f
+        if (bgScrollX > bgStars.regionWidth) bgScrollX = 0f
 
         game.batch.begin()
         // Draw scrolling background (tiled)
-        val bgWidth = bgStars.width.toFloat()
-        val bgHeight = bgStars.height.toFloat()
+        val bgWidth = bgStars.regionWidth.toFloat()
+        val bgHeight = bgStars.regionHeight.toFloat()
         val screenWidth = Constants.WORLD_WIDTH
         val screenHeight = Constants.WORLD_HEIGHT
 

@@ -22,14 +22,6 @@ class Assets : Disposable {
         manager.load("sounds/shoot.wav", Sound::class.java)
         manager.load("sounds/explosion.wav", Sound::class.java)
         manager.load("sprites/atlas.atlas", TextureAtlas::class.java)
-        
-        // UI Textures
-        manager.load("ui/title_logo.png", Texture::class.java)
-        manager.load("ui/ui_button_default.png", Texture::class.java)
-        manager.load("ui/ui_button_pressed.png", Texture::class.java)
-        manager.load("ui/bg_stars.png", Texture::class.java)
-        manager.load("ui/ui_card.png", Texture::class.java)
-        manager.load("ui/ui_card_selected.png", Texture::class.java)
     }
 
     fun finishLoading() {
@@ -58,13 +50,13 @@ class Assets : Disposable {
         return atlas.findRegions(skin.thrustAnimationRegionPrefix)
     }
 
-    // UI Assets
-    fun getTitleLogo(): Texture = manager.get("ui/title_logo.png", Texture::class.java)
-    fun getButtonDefault(): Texture = manager.get("ui/ui_button_default.png", Texture::class.java)
-    fun getButtonPressed(): Texture = manager.get("ui/ui_button_pressed.png", Texture::class.java)
-    fun getBackgroundStars(): Texture = manager.get("ui/bg_stars.png", Texture::class.java)
-    fun getCard(): Texture = manager.get("ui/ui_card.png", Texture::class.java)
-    fun getCardSelected(): Texture = manager.get("ui/ui_card_selected.png", Texture::class.java)
+    // UI Assets (Retrieved from Atlas)
+    fun getTitleLogo(): TextureRegion = atlas.findRegion("title_logo")
+    fun getButtonDefault(): TextureRegion = atlas.findRegion("ui_button_default")
+    fun getButtonPressed(): TextureRegion = atlas.findRegion("ui_button_pressed")
+    fun getBackgroundStars(): TextureRegion = atlas.findRegion("bg_stars")
+    fun getCard(): TextureRegion = atlas.findRegion("ui_card")
+    fun getCardSelected(): TextureRegion = atlas.findRegion("ui_card_selected")
 
     override fun dispose() {
         manager.dispose()

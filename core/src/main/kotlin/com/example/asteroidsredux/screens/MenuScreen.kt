@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.utils.Align
 import com.example.asteroidsredux.AsteroidsGame
 import com.example.asteroidsredux.utils.Button
 import com.example.asteroidsredux.utils.ButtonRenderer
@@ -77,15 +76,15 @@ class MenuScreen(game: AsteroidsGame) : BaseScreen(game) {
 
         // Scroll background
         bgScrollX += bgScrollSpeed * delta
-        if (bgScrollX > bgStars.width) bgScrollX = 0f
+        if (bgScrollX > bgStars.regionWidth) bgScrollX = 0f
 
         game.batch.begin()
         // Draw scrolling background (tiled)
-        val bgWidth = bgStars.width.toFloat()
-        val bgHeight = bgStars.height.toFloat()
+        val bgWidth = bgStars.regionWidth.toFloat()
+        val bgHeight = bgStars.regionHeight.toFloat()
         val screenWidth = Constants.WORLD_WIDTH
         val screenHeight = Constants.WORLD_HEIGHT
-        
+
         var x = -bgScrollX
         while (x < screenWidth) {
             var y = 0f
@@ -115,7 +114,7 @@ class MenuScreen(game: AsteroidsGame) : BaseScreen(game) {
         val touchX = ButtonRenderer.getTouchX()
         val touchY = ButtonRenderer.getTouchY()
         val isTouching = Gdx.input.isTouched
-        
+
         val isPlayPressed = isTouching && ButtonRenderer.isClicked(playBtn, touchX, touchY)
         val isCustomizePressed = isTouching && ButtonRenderer.isClicked(customizeBtn, touchX, touchY)
 

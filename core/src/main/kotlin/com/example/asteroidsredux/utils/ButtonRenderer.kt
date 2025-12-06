@@ -2,9 +2,9 @@ package com.example.asteroidsredux.utils
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.utils.Align
 
@@ -21,15 +21,15 @@ data class Button(
     val borderColor: Color = Color.WHITE,
     val textColor: Color = Color.WHITE,
     val textScale: Float = 1.5f,
-    val texture: Texture? = null,
-    val pressedTexture: Texture? = null
+    val texture: TextureRegion? = null,
+    val pressedTexture: TextureRegion? = null
 )
 
 /**
  * Utility for drawing and hit-testing UI buttons.
  */
 object ButtonRenderer {
-    
+
     /**
      * Draw a button with filled background, border, and centered text.
      */
@@ -52,14 +52,14 @@ object ButtonRenderer {
             shapeRenderer.color = button.fillColor
             shapeRenderer.rect(button.x, button.y, button.width, button.height)
             shapeRenderer.end()
-            
+
             // Draw border
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
             shapeRenderer.color = button.borderColor
             shapeRenderer.rect(button.x, button.y, button.width, button.height)
             shapeRenderer.end()
         }
-        
+
         // Draw text
         batch.begin()
         font.data.setScale(button.textScale)
@@ -75,7 +75,7 @@ object ButtonRenderer {
         )
         batch.end()
     }
-    
+
     /**
      * Check if touch coordinates are inside the button bounds.
      * Note: touchY should already be converted to world coordinates (Y-flipped).
@@ -84,7 +84,7 @@ object ButtonRenderer {
         return touchX >= button.x && touchX <= button.x + button.width &&
                touchY >= button.y && touchY <= button.y + button.height
     }
-    
+
     /**
      * Get touch coordinates in world space (Y-flipped).
      */

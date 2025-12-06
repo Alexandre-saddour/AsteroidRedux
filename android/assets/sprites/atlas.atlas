@@ -1,5 +1,59 @@
 
 atlas.png
+size: 2048, 2048
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+bg_stars
+  rotate: false
+  xy: 1, 1
+  size: 1024, 1024
+  orig: 1024, 1024
+  offset: 0, 0
+  index: -1
+
+atlas2.png
+size: 4096, 1024
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+ui/title_logo
+  rotate: false
+  xy: 2525, 621
+  size: 849, 353
+  orig: 849, 353
+  offset: 0, 0
+  index: -1
+ui/ui_button_default
+  rotate: false
+  xy: 2525, 248
+  size: 819, 371
+  orig: 819, 371
+  offset: 0, 0
+  index: -1
+ui/ui_button_pressed
+  rotate: false
+  xy: 954, 271
+  size: 930, 703
+  orig: 930, 703
+  offset: 0, 0
+  index: -1
+ui/ui_card
+  rotate: false
+  xy: 1, 1
+  size: 951, 973
+  orig: 951, 973
+  offset: 0, 0
+  index: -1
+ui/ui_card_selected
+  rotate: false
+  xy: 1886, 132
+  size: 637, 842
+  orig: 637, 842
+  offset: 0, 0
+  index: -1
+
+atlas3.png
 size: 2048, 256
 format: RGBA8888
 filter: Nearest, Nearest
@@ -33,7 +87,7 @@ fire/skin1/fire
   offset: 0, 0
   index: 3
 
-atlas2.png
+atlas4.png
 size: 4096, 2048
 format: RGBA8888
 filter: Nearest, Nearest
@@ -53,7 +107,7 @@ rock/rock2
   offset: 0, 0
   index: -1
 
-atlas3.png
+atlas5.png
 size: 4096, 4096
 format: RGBA8888
 filter: Nearest, Nearest
