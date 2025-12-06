@@ -2,7 +2,9 @@ package com.example.asteroidsredux.screens
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.math.Rectangle
+import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack
 import com.badlogic.gdx.utils.Align
 import com.example.asteroidsredux.AsteroidsGame
 import com.example.asteroidsredux.skins.SkinCategory
@@ -12,60 +14,117 @@ import com.example.asteroidsredux.utils.Constants
 
 class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
     private var selectedCategory = SkinCategory.SHIP
-    
+
     // Dynamic scale factor
     private val scaleFactor = Constants.UI.SCALE_FACTOR
-    
+
+    // Assets
+    private val bgStars = game.assets.getBackgroundStars()
+    private val buttonDefault = game.assets.getButtonDefault()
+    private val buttonPressed = game.assets.getButtonPressed()
+    private val uiCard = game.assets.getCard()
+    private val uiCardSelected = game.assets.getCardSelected()
+
+    // Background scrolling
+    private var bgScrollX = 0f
+    private val bgScrollSpeed = 30f
+
     // Layout constants (dynamic)
-    private val tabHeight = 80f * scaleFactor
+    private val tabHeight = 60f * scaleFactor
     private val tabWidth = 200f * scaleFactor
-    private val skinCardWidth = 200f * scaleFactor
-    private val skinCardHeight = 250f * scaleFactor
+    private val skinCardWidth = Constants.UI.CARD_WIDTH * 0.8f // Slightly smaller than HUD cards
+    private val skinCardHeight = Constants.UI.CARD_HEIGHT * 0.8f
     private val cardSpacing = 30f * scaleFactor
     private val cardsPerRow = 3
-    
+
     // Button sizes (dynamic)
-    private val backButtonWidth = 120f * scaleFactor
-    private val backButtonHeight = 40f * scaleFactor
-    
+    private val backButtonWidth = 150f * scaleFactor
+    private val backButtonHeight = 50f * scaleFactor
+
     // Text scales (dynamic)
     private val headerTextScale = 3f * scaleFactor
-    private val tabTextScaleSelected = 1.8f * scaleFactor
-    private val tabTextScaleNormal = 1.5f * scaleFactor
-    private val skinNameTextScale = 1.2f * scaleFactor
-    private val unlockConditionTextScale = 0.9f * scaleFactor
+    private val tabTextScaleSelected = 1.6f * scaleFactor
+    private val tabTextScaleNormal = 1.4f * scaleFactor
+    private val skinNameTextScale = 1.0f * scaleFactor
+    private val unlockConditionTextScale = 0.8f * scaleFactor
     private val buttonTextScale = 1.5f * scaleFactor
 
     private val backButton = Button(
         x = 30f * scaleFactor,
-        y = 30f * scaleFactor,
+        y = Constants.WORLD_HEIGHT - 80f * scaleFactor, // Moved to top left
         width = backButtonWidth,
         height = backButtonHeight,
         text = "BACK",
-        fillColor = Color(0.2f, 0.2f, 0.3f, 1f),
-        borderColor = Color.GRAY,
-        textColor = Color.WHITE,
-        textScale = buttonTextScale
+        textColor = Color.CYAN,
+        textScale = buttonTextScale,
+        texture = buttonDefault,
+        pressedTexture = buttonPressed
     )
 
+    // Scroll state
+    private var scrollY = 0f
+    private var maxScrollY = 0f
+    private var isDragging = false
+    private var lastTouchY = 0f
+    private val scrollSpeed = 1.5f // Multiplier for drag speed
+
+    // Scissor rectangle for clipping
+    private val scissors = Rectangle()
+
     override fun render(delta: Float) {
-        // Gradient background
-        game.shapeRenderer.projectionMatrix = camera.combined
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        game.shapeRenderer.rect(
-            0f, 0f, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT,
-            Color.valueOf("0a0a1a"), Color.valueOf("0a0a1a"),
-            Color.valueOf("1a1a3a"), Color.valueOf("1a1a3a")
-        )
-        game.shapeRenderer.end()
+        // Handle back button (hardware)
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.BACK)) {
+            game.screen = MenuScreen(game)
+            dispose()
+            return
+        }
+
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
         updateCamera()
-        
+
+        // Scroll background
+        bgScrollX += bgScrollSpeed * delta
+        if (bgScrollX > bgStars.width) bgScrollX = 0f
+
+        game.batch.begin()
+        // Draw scrolling background (tiled)
+        val bgWidth = bgStars.width.toFloat()
+        val bgHeight = bgStars.height.toFloat()
+        val screenWidth = Constants.WORLD_WIDTH
+        val screenHeight = Constants.WORLD_HEIGHT
+
+        var x = -bgScrollX
+        while (x < screenWidth) {
+            var y = 0f
+            while (y < screenHeight) {
+                game.batch.draw(bgStars, x, y)
+                y += bgHeight
+            }
+            x += bgWidth
+        }
+        game.batch.end()
+
         drawHeader()
         drawCategoryTabs()
-        drawSkinGrid()
+
+        // Calculate grid area for clipping
+        val gridStartY = Constants.WORLD_HEIGHT - 180f * scaleFactor
+
+        // Prepare scissor test
+        game.batch.flush()
+        ScissorStack.calculateScissors(camera, game.batch.transformMatrix,
+            Rectangle(0f, 0f, Constants.WORLD_WIDTH, gridStartY), scissors)
+
+        if (ScissorStack.pushScissors(scissors)) {
+            drawSkinGrid()
+            game.batch.flush()
+            ScissorStack.popScissors()
+        }
+
         ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), backButton)
-        
+
         handleInput()
     }
 
@@ -73,82 +132,78 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
         game.batch.begin()
         val font = game.assets.getFont()
         font.data.setScale(headerTextScale)
+
+        // Glow effect
+        font.color = Color.CYAN.cpy().apply { a = 0.3f }
+        val title = "CUSTOMIZE"
+        val titleY = Constants.WORLD_HEIGHT - 30f * scaleFactor
+        font.draw(game.batch, title, 4f, titleY - 4f, Constants.WORLD_WIDTH, Align.center, false)
+        font.draw(game.batch, title, -4f, titleY + 4f, Constants.WORLD_WIDTH, Align.center, false)
+
         font.color = Color.CYAN
-        font.draw(game.batch, "CUSTOMIZE", 0f, Constants.WORLD_HEIGHT - 30f * scaleFactor, Constants.WORLD_WIDTH, Align.center, false)
+        font.draw(game.batch, title, 0f, titleY, Constants.WORLD_WIDTH, Align.center, false)
         game.batch.end()
     }
 
     private fun drawCategoryTabs() {
         val categories = SkinCategory.values()
-        val startX = (Constants.WORLD_WIDTH - (categories.size * tabWidth)) / 2f
-        val y = Constants.WORLD_HEIGHT - 120f * scaleFactor
+        val totalTabWidth = categories.size * tabWidth + (categories.size - 1) * 20f * scaleFactor
+        val startX = (Constants.WORLD_WIDTH - totalTabWidth) / 2f
+        val y = Constants.WORLD_HEIGHT - 130f * scaleFactor
 
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        game.shapeRenderer.color = Color.DARK_GRAY
-        game.shapeRenderer.rect(startX, y, categories.size * tabWidth, 2f * scaleFactor)
-        
-        val selectedIndex = categories.indexOf(selectedCategory)
-        game.shapeRenderer.color = Color.CYAN
-        game.shapeRenderer.rect(startX + selectedIndex * tabWidth, y, tabWidth, 4f * scaleFactor)
-        game.shapeRenderer.end()
-
-        game.batch.begin()
-        val font = game.assets.getFont()
         for ((i, category) in categories.withIndex()) {
-            val x = startX + i * tabWidth
+            val x = startX + i * (tabWidth + 20f * scaleFactor)
             val isSelected = category == selectedCategory
-            
-            font.data.setScale(if (isSelected) tabTextScaleSelected else tabTextScaleNormal)
-            font.color = if (isSelected) Color.WHITE else Color.GRAY
-            font.draw(game.batch, category.name, x, y + 40f * scaleFactor, tabWidth, Align.center, false)
+
+            // Create a temporary button for rendering
+            val tabBtn = Button(
+                x = x,
+                y = y,
+                width = tabWidth,
+                height = tabHeight,
+                text = category.name,
+                textColor = if (isSelected) Color.CYAN else Color.GRAY,
+                textScale = if (isSelected) tabTextScaleSelected else tabTextScaleNormal,
+                texture = if (isSelected) buttonPressed else buttonDefault,
+                pressedTexture = buttonPressed
+            )
+
+            // We use ButtonRenderer but force the "pressed" texture if selected
+            // Actually ButtonRenderer logic relies on "isPressed" param for texture swap.
+            // Let's just manually draw it or use ButtonRenderer with a trick.
+            // Better to just draw manually here for full control or update ButtonRenderer.
+            // Let's draw manually using batch since we have textures.
+
+            game.batch.begin()
+            val texture = if (isSelected) buttonPressed else buttonDefault
+            game.batch.draw(texture, x, y, tabWidth, tabHeight)
+
+            val font = game.assets.getFont()
+            font.data.setScale(tabBtn.textScale)
+            font.color = tabBtn.textColor
+
+            val layout = com.badlogic.gdx.graphics.g2d.GlyphLayout(font, category.name)
+            val textX = x + (tabWidth - layout.width) / 2
+            val textY = y + (tabHeight + layout.height) / 2
+            font.draw(game.batch, category.name, textX, textY)
+            game.batch.end()
         }
-        game.batch.end()
     }
 
     private fun drawSkinGrid() {
         val skins = game.skinManager.getSkinsForCategory(selectedCategory)
         val selectedSkinId = game.skinManager.getSelectedSkinId(selectedCategory)
-        
+
         val totalWidth = cardsPerRow * skinCardWidth + (cardsPerRow - 1) * cardSpacing
         val startX = (Constants.WORLD_WIDTH - totalWidth) / 2f
-        val startY = Constants.WORLD_HEIGHT - 180f * scaleFactor
+        val startY = Constants.WORLD_HEIGHT - 180f * scaleFactor + scrollY // Apply scrollY
 
-        // First pass: Draw all card backgrounds
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        for ((i, skin) in skins.withIndex()) {
-            val row = i / cardsPerRow
-            val col = i % cardsPerRow
-            val x = startX + col * (skinCardWidth + cardSpacing)
-            val y = startY - row * (skinCardHeight + cardSpacing) - skinCardHeight
-            val isSelected = skin.id == selectedSkinId
+        // Calculate max scroll
+        val rows = (skins.size + cardsPerRow - 1) / cardsPerRow
+        val totalGridHeight = rows * (skinCardHeight + cardSpacing)
+        val visibleHeight = Constants.WORLD_HEIGHT - 180f * scaleFactor
+        maxScrollY = (totalGridHeight - visibleHeight + 100f * scaleFactor).coerceAtLeast(0f)
 
-            if (isSelected) {
-                game.shapeRenderer.color = Color.CYAN.cpy().apply { a = 0.2f }
-                game.shapeRenderer.rect(x - 5f * scaleFactor, y - 5f * scaleFactor, skinCardWidth + 10f * scaleFactor, skinCardHeight + 10f * scaleFactor)
-            }
-            
-            game.shapeRenderer.color = Color(0.15f, 0.15f, 0.25f, 0.9f)
-            game.shapeRenderer.rect(x, y, skinCardWidth, skinCardHeight)
-        }
-        game.shapeRenderer.end()
-
-        // Second pass: Draw selection borders
-        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        for ((i, skin) in skins.withIndex()) {
-            val row = i / cardsPerRow
-            val col = i % cardsPerRow
-            val x = startX + col * (skinCardWidth + cardSpacing)
-            val y = startY - row * (skinCardHeight + cardSpacing) - skinCardHeight
-            val isSelected = skin.id == selectedSkinId
-
-            if (isSelected) {
-                game.shapeRenderer.color = Color.CYAN
-                game.shapeRenderer.rect(x, y, skinCardWidth, skinCardHeight)
-            }
-        }
-        game.shapeRenderer.end()
-
-        // Third pass: Draw textures and text
         game.batch.begin()
         for ((i, skin) in skins.withIndex()) {
             val row = i / cardsPerRow
@@ -156,79 +211,128 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
             val x = startX + col * (skinCardWidth + cardSpacing)
             val y = startY - row * (skinCardHeight + cardSpacing) - skinCardHeight
 
-            val isUnlocked = game.skinManager.isUnlocked(selectedCategory, skin.id)
-            val isSelected = skin.id == selectedSkinId
+            // Culling: Don't draw if out of screen
+            if (y + skinCardHeight < 0 || y > Constants.WORLD_HEIGHT) continue
 
+            val isSelected = skin.id == selectedSkinId
+            val isUnlocked = game.skinManager.isUnlocked(selectedCategory, skin.id)
+
+            // Draw Card Background
+            val cardBg = if (isSelected) uiCardSelected else uiCard
+            game.batch.draw(cardBg, x, y, skinCardWidth, skinCardHeight)
+
+            // Draw Skin Preview
             val textureRegion = game.assets.getTextureRegion(skin)
             if (textureRegion != null) {
-                val previewSize = 120f * scaleFactor
+                val previewSize = 100f * scaleFactor
                 val previewX = x + (skinCardWidth - previewSize) / 2f
                 val previewY = y + (skinCardHeight - previewSize) / 2f + 20f * scaleFactor
-                
+
                 val color = if (isUnlocked) Color.WHITE else Color.GRAY
                 game.batch.setColor(color)
                 game.batch.draw(textureRegion, previewX, previewY, previewSize, previewSize)
                 game.batch.setColor(Color.WHITE)
             }
 
+            // Draw Text
             val font = game.assets.getFont()
             font.data.setScale(skinNameTextScale)
             font.color = if (isSelected) Color.CYAN else Color.WHITE
-            font.draw(game.batch, skin.displayName, x, y + 40f * scaleFactor, skinCardWidth, Align.center, false)
-            
+            font.draw(game.batch, skin.displayName, x, y + 50f * scaleFactor, skinCardWidth, Align.center, false)
+
             if (!isUnlocked && skin.unlockCondition != null) {
                 font.data.setScale(unlockConditionTextScale)
                 font.color = Color.GRAY
-                font.draw(game.batch, "🔒 ${skin.unlockCondition}", x, y + 20f * scaleFactor, skinCardWidth, Align.center, true)
+                font.draw(game.batch, "🔒 ${skin.unlockCondition}", x, y + 25f * scaleFactor, skinCardWidth, Align.center, true)
             }
         }
         game.batch.end()
     }
 
+    private var wasTouched = false
+
     private fun handleInput() {
-        if (Gdx.input.justTouched()) {
-            val touchX = ButtonRenderer.getTouchX()
-            val touchY = ButtonRenderer.getTouchY()
+        val touchX = ButtonRenderer.getTouchX()
+        val touchY = ButtonRenderer.getTouchY()
+        val isTouched = Gdx.input.isTouched
 
-            // Check back button
-            if (ButtonRenderer.isClicked(backButton, touchX, touchY)) {
-                game.screen = MenuScreen(game)
-                dispose()
-                return
-            }
+        if (isTouched) {
+            if (!wasTouched) {
+                // Touch just started
+                isDragging = false
+                lastTouchY = touchY
 
-            // Check category tabs
-            val categories = SkinCategory.values()
-            val startX = (Constants.WORLD_WIDTH - (categories.size * tabWidth)) / 2f
-            val tabY = Constants.WORLD_HEIGHT - 120f * scaleFactor
-            
-            if (touchY > tabY && touchY < tabY + 60f * scaleFactor) {
-                val relativeX = touchX - startX
-                if (relativeX >= 0 && relativeX < categories.size * tabWidth) {
-                    val tabIndex = (relativeX / tabWidth).toInt()
-                    selectedCategory = categories[tabIndex]
+                // Check back button (always visible)
+                if (ButtonRenderer.isClicked(backButton, touchX, touchY)) {
+                    game.screen = MenuScreen(game)
+                    dispose()
                     return
                 }
-            }
 
-            // Check skin cards
-            val skins = game.skinManager.getSkinsForCategory(selectedCategory)
-            val totalWidth = cardsPerRow * skinCardWidth + (cardsPerRow - 1) * cardSpacing
-            val gridStartX = (Constants.WORLD_WIDTH - totalWidth) / 2f
-            val gridStartY = Constants.WORLD_HEIGHT - 180f * scaleFactor
+                // Check category tabs (always visible)
+                val categories = SkinCategory.values()
+                val totalTabWidth = categories.size * tabWidth + (categories.size - 1) * 20f * scaleFactor
+                val startX = (Constants.WORLD_WIDTH - totalTabWidth) / 2f
+                val tabY = Constants.WORLD_HEIGHT - 130f * scaleFactor
 
-            for ((i, skin) in skins.withIndex()) {
-                val row = i / cardsPerRow
-                val col = i % cardsPerRow
-                val x = gridStartX + col * (skinCardWidth + cardSpacing)
-                val y = gridStartY - row * (skinCardHeight + cardSpacing) - skinCardHeight
-
-                if (touchX >= x && touchX <= x + skinCardWidth && touchY >= y && touchY <= y + skinCardHeight) {
-                    if (game.skinManager.isUnlocked(selectedCategory, skin.id)) {
-                        game.skinManager.selectSkin(selectedCategory, skin.id)
+                if (touchY >= tabY && touchY <= tabY + tabHeight) {
+                    for ((i, category) in categories.withIndex()) {
+                        val x = startX + i * (tabWidth + 20f * scaleFactor)
+                        if (touchX >= x && touchX <= x + tabWidth) {
+                            selectedCategory = category
+                            scrollY = 0f // Reset scroll on tab change
+                            wasTouched = true // Mark as touched so we don't re-trigger
+                            return
+                        }
                     }
-                    return
                 }
+            } else {
+                // Continuing touch (Drag)
+                val deltaY = touchY - lastTouchY
+                lastTouchY = touchY
+
+                // If dragging in the grid area
+                if (touchY < Constants.WORLD_HEIGHT - 180f * scaleFactor) {
+                    if (kotlin.math.abs(deltaY) > 2f) {
+                        isDragging = true
+                    }
+
+                    if (isDragging) {
+                        scrollY += deltaY * scrollSpeed
+                        scrollY = scrollY.coerceIn(0f, maxScrollY)
+                    }
+                }
+            }
+        } else {
+            // Touch released
+            if (wasTouched) {
+                if (!isDragging && touchY < Constants.WORLD_HEIGHT - 180f * scaleFactor) {
+                    handleGridClick(touchX, touchY)
+                }
+                isDragging = false
+            }
+        }
+
+        wasTouched = isTouched
+    }
+
+    private fun handleGridClick(touchX: Float, touchY: Float) {
+        val skins = game.skinManager.getSkinsForCategory(selectedCategory)
+        val totalWidth = cardsPerRow * skinCardWidth + (cardsPerRow - 1) * cardSpacing
+        val startX = (Constants.WORLD_WIDTH - totalWidth) / 2f
+        val startY = Constants.WORLD_HEIGHT - 180f * scaleFactor + scrollY
+
+        for ((i, skin) in skins.withIndex()) {
+            val row = i / cardsPerRow
+            val col = i % cardsPerRow
+            val x = startX + col * (skinCardWidth + cardSpacing)
+            val y = startY - row * (skinCardHeight + cardSpacing) - skinCardHeight
+
+            if (touchX >= x && touchX <= x + skinCardWidth && touchY >= y && touchY <= y + skinCardHeight) {
+                if (game.skinManager.isUnlocked(selectedCategory, skin.id)) {
+                    game.skinManager.selectSkin(selectedCategory, skin.id)
+                }
+                return
             }
         }
     }
