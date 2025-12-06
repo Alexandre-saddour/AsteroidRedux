@@ -12,4 +12,10 @@ class AndroidLauncher : AndroidApplication() {
         config.useWakelock = true // Keep screen on
         initialize(AsteroidsGame(), config)
     }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        // Let LibGDX handle back button through Input.Keys.BACK
+        // Don't call super.onBackPressed() which would exit the app
+    }
 }

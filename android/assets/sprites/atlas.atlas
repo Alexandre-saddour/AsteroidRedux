@@ -1,33 +1,33 @@
 
 atlas.png
-size: 512, 512
+size: 2048, 256
 format: RGBA8888
 filter: Nearest, Nearest
 repeat: none
 fire/skin1/fire
   rotate: false
-  xy: 1, 305
+  xy: 1, 1
+  size: 415, 188
+  orig: 415, 188
+  offset: 0, 0
+  index: 4
+fire/skin1/fire
+  rotate: false
+  xy: 418, 29
   size: 431, 160
   orig: 431, 160
   offset: 0, 0
   index: 1
 fire/skin1/fire
   rotate: false
-  xy: 1, 117
+  xy: 851, 3
   size: 400, 186
   orig: 400, 186
   offset: 0, 0
   index: 2
 fire/skin1/fire
   rotate: false
-  xy: 1, 117
-  size: 400, 186
-  orig: 400, 186
-  offset: 0, 0
-  index: 4
-fire/skin1/fire
-  rotate: false
-  xy: 1, 1
+  xy: 1253, 75
   size: 293, 114
   orig: 293, 114
   offset: 0, 0
