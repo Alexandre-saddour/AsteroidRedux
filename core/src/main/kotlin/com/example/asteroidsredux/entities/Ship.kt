@@ -146,7 +146,7 @@ class Ship(
         
         // Render thrust if thrusting
         if (inputHandler.isThrusting && thrustAnimation != null) {
-            val degrees = (angle * MathUtils.radiansToDegrees) - 90f
+            val degrees = (angle * MathUtils.radiansToDegrees) + 180f // +180 to point flame behind ship
             val currentFrame = thrustAnimation!!.getKeyFrame(stateTime, true)
             
             // Position behind the ship
