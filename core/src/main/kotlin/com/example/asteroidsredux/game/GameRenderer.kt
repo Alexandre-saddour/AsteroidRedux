@@ -81,13 +81,14 @@ class GameRenderer(
         
         // Asteroids (Sprite)
         if (asteroidSkinId != AsteroidSkinId.CLASSIC) {
-            val texture = assets.getAsteroidTexture(asteroidSkinId)
-            if (texture != null) {
-                for (asteroid in world.asteroids) asteroid.render(batch, texture)
+            val textureRegion = assets.getAsteroidTexture(asteroidSkinId)
+            if (textureRegion != null) {
+                for (asteroid in world.asteroids) asteroid.render(batch, textureRegion)
             }
         }
         
         // Ship (Sprite)
+        world.ship.renderThrust(batch)
         if (shipSkinId != ShipSkinId.CLASSIC) {
             world.ship.render(batch)
         }

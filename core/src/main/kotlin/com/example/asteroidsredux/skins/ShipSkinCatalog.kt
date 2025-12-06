@@ -5,49 +5,57 @@ object ShipSkinCatalog : SkinRegistry<ShipSkin> {
         ShipSkin(
             id = ShipSkinId.CLASSIC,
             displayName = "Classic",
-            textureFileName = "",
+            atlasRegionName = "",
+            thrustAnimationRegionPrefix = "fire/skin1/fire",
             unlockCondition = null
         ),
         ShipSkin(
             id = ShipSkinId.SHIP_1,
             displayName = "Sprite",
-            textureFileName = "images/ship1.png",
+            atlasRegionName = "ship/ship1",
+            thrustAnimationRegionPrefix = "fire/skin1/fire",
             unlockCondition = null
         ),
         ShipSkin(
             id = ShipSkinId.SHIP_2,
             displayName = "Sprite",
-            textureFileName = "images/ship2.png",
+            atlasRegionName = "ship/ship2",
+            thrustAnimationRegionPrefix = "fire/skin1/fire",
             unlockCondition = null
         ),
         ShipSkin(
             id = ShipSkinId.SHIP_3,
             displayName = "Sprite",
-            textureFileName = "images/ship3.png",
+            atlasRegionName = "ship/ship3",
+            thrustAnimationRegionPrefix = "fire/skin1/fire",
             unlockCondition = null
         ),
         ShipSkin(
             id = ShipSkinId.SHIP_4,
             displayName = "Sprite",
-            textureFileName = "images/ship4.png",
+            atlasRegionName = "ship/ship4",
+            thrustAnimationRegionPrefix = "fire/skin1/fire",
             unlockCondition = null
         ),
         ShipSkin(
             id = ShipSkinId.SHIP_5,
             displayName = "Sprite",
-            textureFileName = "images/ship5.png",
+            atlasRegionName = "ship/ship5",
+            thrustAnimationRegionPrefix = "fire/skin1/fire",
             unlockCondition = null
         ),
         ShipSkin(
             id = ShipSkinId.SHIP_6,
             displayName = "Sprite",
-            textureFileName = "images/ship6.png",
+            atlasRegionName = "ship/ship6",
+            thrustAnimationRegionPrefix = "fire/skin1/fire",
             unlockCondition = null
         ),
         ShipSkin(
             id = ShipSkinId.SHIP_7,
             displayName = "Sprite",
-            textureFileName = "images/ship7.png",
+            atlasRegionName = "ship/ship7",
+            thrustAnimationRegionPrefix = "fire/skin1/fire",
             unlockCondition = null
         ),
     )

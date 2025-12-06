@@ -18,15 +18,17 @@ enum class ShipSkinId {
 data class ShipSkin(
     override val id: String,
     override val displayName: String,
-    override val textureFileName: String,
+    override val atlasRegionName: String,
+    val thrustAnimationRegionPrefix: String? = null,
     override val unlockCondition: String? = null
 ) : Skin {
     constructor(
         id: ShipSkinId,
         displayName: String,
-        textureFileName: String,
+        atlasRegionName: String,
+        thrustAnimationRegionPrefix: String? = null,
         unlockCondition: String? = null
-    ) : this(id.name, displayName, textureFileName, unlockCondition)
+    ) : this(id.name, displayName, atlasRegionName, thrustAnimationRegionPrefix, unlockCondition)
 
     val skinId: ShipSkinId get() = ShipSkinId.valueOf(id)
 }

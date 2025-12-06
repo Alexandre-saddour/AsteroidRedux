@@ -144,15 +144,15 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
             val isUnlocked = game.skinManager.isUnlocked(selectedCategory, skin.id)
             val isSelected = skin.id == selectedSkinId
 
-            val texture = game.assets.getTexture(skin)
-            if (texture != null) {
+            val textureRegion = game.assets.getTextureRegion(skin)
+            if (textureRegion != null) {
                 val previewSize = 120f
                 val previewX = x + (skinCardWidth - previewSize) / 2f
                 val previewY = y + (skinCardHeight - previewSize) / 2f + 20f
                 
                 val color = if (isUnlocked) Color.WHITE else Color.GRAY
                 game.batch.setColor(color)
-                game.batch.draw(texture, previewX, previewY, previewSize, previewSize)
+                game.batch.draw(textureRegion, previewX, previewY, previewSize, previewSize)
                 game.batch.setColor(Color.WHITE)
             }
 

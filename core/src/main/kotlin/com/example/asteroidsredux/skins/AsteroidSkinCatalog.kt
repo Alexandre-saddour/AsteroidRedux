@@ -5,19 +5,19 @@ object AsteroidSkinCatalog : SkinRegistry<AsteroidSkin> {
         AsteroidSkin(
             id = AsteroidSkinId.CLASSIC,
             displayName = "Classic",
-            textureFileName = "",
+            atlasRegionName = "",
             unlockCondition = null
         ),
         AsteroidSkin(
             id = AsteroidSkinId.ROCK1,
             displayName = "Rock",
-            textureFileName = "images/rock1.png",
+            atlasRegionName = "rock/rock1",
             unlockCondition = null
         ),
         AsteroidSkin(
             id = AsteroidSkinId.ROCK2,
             displayName = "Rock",
-            textureFileName = "images/rock2.png",
+            atlasRegionName = "rock/rock2",
             unlockCondition = null
         ),
     )

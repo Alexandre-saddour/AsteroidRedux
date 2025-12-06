@@ -1,7 +1,8 @@
 package com.example.asteroidsredux.entities
 
-import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
@@ -25,20 +26,34 @@ class Ship(
     var angle = MathUtils.PI / 2 // Pointing up
     val nose = Vector2()
     var isDead = false
-    
-    // Current texture (null for classic skin)
-    private var texture: Texture? = assets.getShipTexture(skinManager.selectedShipSkinId)
-    
+
+    // Current texture region (null for classic skin)
+    private var textureRegion: TextureRegion? = assets.getShipTexture(skinManager.selectedShipSkinId)
+    private var thrustAnimation: Animation<TextureRegion>? = null
+    private var stateTime = 0f
+
     init {
         // Listen for skin changes
         skinManager.addShipSkinChangeListener { skinId ->
-            texture = assets.getShipTexture(skinId)
+            textureRegion = assets.getShipTexture(skinId)
+            loadThrustAnimation(skinId)
         }
+        loadThrustAnimation(skinManager.selectedShipSkinId)
     }
-    
+
     // Manual skin switching (if needed without going through SkinManager)
     fun setSkin(skinId: ShipSkinId) {
-        texture = assets.getShipTexture(skinId)
+        textureRegion = assets.getShipTexture(skinId)
+        loadThrustAnimation(skinId)
+    }
+
+    private fun loadThrustAnimation(skinId: ShipSkinId) {
+        val thrustRegions = assets.getThrustAnimationRegions(skinId)
+        if (thrustRegions != null && thrustRegions.size > 0) {
+            thrustAnimation = Animation(0.1f, thrustRegions, Animation.PlayMode.LOOP)
+        } else {
+            thrustAnimation = null
+        }
     }
 
     fun update(delta: Float) {
@@ -49,11 +64,11 @@ class Ship(
         if (targetAngle != null) {
             // Calculate shortest rotation direction
             var angleDiff = targetAngle - angle
-            
+
             // Normalize to [-PI, PI]
             while (angleDiff > MathUtils.PI) angleDiff -= MathUtils.PI2
             while (angleDiff < -MathUtils.PI) angleDiff += MathUtils.PI2
-            
+
             // Rotate towards target at rotation speed
             val maxRotation = Constants.SHIP_ROTATION_SPEED * delta
             if (kotlin.math.abs(angleDiff) < maxRotation) {
@@ -90,19 +105,21 @@ class Ship(
 
         // Update nose position for shooting
         nose.set(Constants.SHIP_SIZE, 0f).rotateRad(angle).add(position)
+        
+        stateTime += delta
     }
 
     // Classic (polygon) rendering
     fun render(shapeRenderer: ShapeRenderer) {
         if (isDead) return
-        
+
         shapeRenderer.color = Constants.SHIP_COLOR
-        
+
         // Triangle ship pointing in direction of angle
         val size = Constants.SHIP_SIZE
         val x = position.x
         val y = position.y
-        
+
         // Calculate triangle vertices
         val tipX = x + MathUtils.cos(angle) * size
         val tipY = y + MathUtils.sin(angle) * size
@@ -110,17 +127,34 @@ class Ship(
         val leftY = y + MathUtils.sin(angle + MathUtils.PI * 0.8f) * size * 0.7f
         val rightX = x + MathUtils.cos(angle - MathUtils.PI * 0.8f) * size * 0.7f
         val rightY = y + MathUtils.sin(angle - MathUtils.PI * 0.8f) * size * 0.7f
-        
+
         shapeRenderer.triangle(tipX, tipY, leftX, leftY, rightX, rightY)
     }
 
     // Sprite rendering
     fun render(batch: SpriteBatch) {
         if (isDead) return
-        
-        val tex = texture ?: return // Can't render sprite without texture
-        
+
+        val region = textureRegion ?: return // Can't render sprite without texture
+
         val degrees = (angle * MathUtils.radiansToDegrees) - 90f
-        SpriteRenderer.drawCentered(batch, tex, position.x, position.y, Constants.SHIP_SIZE, degrees)
+        SpriteRenderer.drawCentered(batch, region, position.x, position.y, Constants.SHIP_SIZE, degrees)
+    }
+
+    fun renderThrust(batch: SpriteBatch) {
+        if (isDead) return
+        
+        // Render thrust if thrusting
+        if (inputHandler.isThrusting && thrustAnimation != null) {
+            val degrees = (angle * MathUtils.radiansToDegrees) - 90f
+            val currentFrame = thrustAnimation!!.getKeyFrame(stateTime, true)
+            
+            // Position behind the ship
+            val fireOffset = Vector2(-Constants.SHIP_SIZE * 1.2f, 0f).rotateRad(angle)
+            val fireX = position.x + fireOffset.x
+            val fireY = position.y + fireOffset.y
+            
+            SpriteRenderer.drawCentered(batch, currentFrame, fireX, fireY, Constants.SHIP_SIZE, degrees)
+        }
     }
 }

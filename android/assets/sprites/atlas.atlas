@@ -1,0 +1,109 @@
+
+atlas.png
+size: 512, 512
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+fire/skin1/fire
+  rotate: false
+  xy: 1, 305
+  size: 431, 160
+  orig: 431, 160
+  offset: 0, 0
+  index: 1
+fire/skin1/fire
+  rotate: false
+  xy: 1, 117
+  size: 400, 186
+  orig: 400, 186
+  offset: 0, 0
+  index: 2
+fire/skin1/fire
+  rotate: false
+  xy: 1, 117
+  size: 400, 186
+  orig: 400, 186
+  offset: 0, 0
+  index: 4
+fire/skin1/fire
+  rotate: false
+  xy: 1, 1
+  size: 293, 114
+  orig: 293, 114
+  offset: 0, 0
+  index: 3
+
+atlas2.png
+size: 4096, 2048
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+rock/rock1
+  rotate: false
+  xy: 1, 1
+  size: 1024, 1024
+  orig: 1024, 1024
+  offset: 0, 0
+  index: -1
+rock/rock2
+  rotate: false
+  xy: 1027, 1
+  size: 1024, 1024
+  orig: 1024, 1024
+  offset: 0, 0
+  index: -1
+
+atlas3.png
+size: 4096, 4096
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+ship/ship1
+  rotate: false
+  xy: 2757, 1640
+  size: 531, 665
+  orig: 531, 665
+  offset: 0, 0
+  index: -1
+ship/ship2
+  rotate: false
+  xy: 1, 1
+  size: 896, 1152
+  orig: 896, 1152
+  offset: 0, 0
+  index: -1
+ship/ship3
+  rotate: false
+  xy: 1859, 2307
+  size: 896, 1152
+  orig: 896, 1152
+  offset: 0, 0
+  index: -1
+ship/ship4
+  rotate: false
+  xy: 899, 1
+  size: 896, 1152
+  orig: 896, 1152
+  offset: 0, 0
+  index: -1
+ship/ship5
+  rotate: false
+  xy: 2757, 2307
+  size: 896, 1152
+  orig: 896, 1152
+  offset: 0, 0
+  index: -1
+ship/ship6
+  rotate: false
+  xy: 1859, 1153
+  size: 896, 1152
+  orig: 896, 1152
+  offset: 0, 0
+  index: -1
+ship/ship7
+  rotate: false
+  xy: 1, 1155
+  size: 1856, 2304
+  orig: 1856, 2304
+  offset: 0, 0
+  index: -1

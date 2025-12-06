@@ -48,11 +48,11 @@ class Asteroid(val size: Float, x: Float, y: Float) {
         shapeRenderer.polygon(polygon.transformedVertices)
     }
 
-    fun render(batch: com.badlogic.gdx.graphics.g2d.SpriteBatch, texture: com.badlogic.gdx.graphics.Texture) {
+    fun render(batch: com.badlogic.gdx.graphics.g2d.SpriteBatch, textureRegion: com.badlogic.gdx.graphics.g2d.TextureRegion) {
         if (!active) return
         com.example.asteroidsredux.utils.SpriteRenderer.drawCentered(
             batch,
-            texture,
+            textureRegion,
             position.x,
             position.y,
             size,

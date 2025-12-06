@@ -6,7 +6,7 @@ package com.example.asteroidsredux.skins
 interface Skin {
     val id: String
     val displayName: String
-    val textureFileName: String
+    val atlasRegionName: String
     val unlockCondition: String?
 }
 
