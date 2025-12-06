@@ -47,23 +47,30 @@ object Constants {
     const val PARTICLE_SPEED = 100f
 
     object UI {
-        // Card Layout
-        const val CARD_WIDTH = 350f
-        const val CARD_HEIGHT = 450f
-        const val CARD_SPACING = 40f
-
-        // Font Scales
-        const val FONT_SCALE_TITLE = 4.5f
-        const val FONT_SCALE_HEADER = 2.5f
-        const val FONT_SCALE_NORMAL = 1.6f
-        const val FONT_SCALE_SMALL = 1.2f // For HUD
-        const val FONT_SCALE_BUTTON = 2.5f
-
-        // Controls
-        const val JOYSTICK_RADIUS = 80f
-        const val BUTTON_RADIUS = 60f
+        // Base reference dimensions for scaling
+        private const val BASE_WIDTH = 1280f
+        private const val BASE_HEIGHT = 720f
         
-        // Positioning (Percentages of screen)
+        // Global scale factor based on current world size
+        val SCALE_FACTOR: Float get() = WORLD_HEIGHT / BASE_HEIGHT
+        
+        // Card Layout (dynamic)
+        val CARD_WIDTH: Float get() = 300f * SCALE_FACTOR
+        val CARD_HEIGHT: Float get() = 400f * SCALE_FACTOR
+        val CARD_SPACING: Float get() = 40f * SCALE_FACTOR
+
+        // Font Scales (dynamic)
+        val FONT_SCALE_TITLE: Float get() = 4.5f * SCALE_FACTOR
+        val FONT_SCALE_HEADER: Float get() = 2.5f * SCALE_FACTOR
+        val FONT_SCALE_NORMAL: Float get() = 1.6f * SCALE_FACTOR
+        val FONT_SCALE_SMALL: Float get() = 1.2f * SCALE_FACTOR
+        val FONT_SCALE_BUTTON: Float get() = 2.5f * SCALE_FACTOR
+
+        // Controls (dynamic)
+        val JOYSTICK_RADIUS: Float get() = 80f * SCALE_FACTOR
+        val BUTTON_RADIUS: Float get() = 60f * SCALE_FACTOR
+        
+        // Positioning (Percentages of screen - these stay constant)
         const val JOYSTICK_X_PCT = 0.15f
         const val JOYSTICK_Y_PCT = 0.35f
         const val BUTTON_X_PCT = 0.85f
@@ -71,7 +78,7 @@ object Constants {
     }
 
     object Game {
-        const val INITIAL_ASTEROID_COUNT = 3
+        const val INITIAL_ASTEROID_COUNT = 9
         const val LEVEL_UP_INPUT_DELAY = 0.75f
         const val WAVE_SPAWN_MULTIPLIER = 2 // + level
     }

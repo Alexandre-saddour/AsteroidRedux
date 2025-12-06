@@ -24,8 +24,8 @@ abstract class BaseScreen(protected val game: AsteroidsGame) : ScreenAdapter() {
     }
 
     private fun updateWorldDimensions(width: Int, height: Int) {
-        Constants.WORLD_WIDTH = width.toFloat()
-        Constants.WORLD_HEIGHT = height.toFloat()
+        Constants.WORLD_WIDTH = width.toFloat()//  * 2f
+        Constants.WORLD_HEIGHT = height.toFloat()// * 2f
     }
 
     protected fun updateCamera() {

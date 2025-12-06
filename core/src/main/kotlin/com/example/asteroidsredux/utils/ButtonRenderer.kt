@@ -2,6 +2,7 @@ package com.example.asteroidsredux.utils
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -19,7 +20,9 @@ data class Button(
     val fillColor: Color = Color.DARK_GRAY,
     val borderColor: Color = Color.WHITE,
     val textColor: Color = Color.WHITE,
-    val textScale: Float = 1.5f
+    val textScale: Float = 1.5f,
+    val texture: Texture? = null,
+    val pressedTexture: Texture? = null
 )
 
 /**
@@ -34,19 +37,28 @@ object ButtonRenderer {
         shapeRenderer: ShapeRenderer,
         batch: SpriteBatch,
         font: BitmapFont,
-        button: Button
+        button: Button,
+        isPressed: Boolean = false
     ) {
-        // Draw filled background
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        shapeRenderer.color = button.fillColor
-        shapeRenderer.rect(button.x, button.y, button.width, button.height)
-        shapeRenderer.end()
-        
-        // Draw border
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        shapeRenderer.color = button.borderColor
-        shapeRenderer.rect(button.x, button.y, button.width, button.height)
-        shapeRenderer.end()
+        val currentTexture = if (isPressed) button.pressedTexture else button.texture
+
+        if (currentTexture != null) {
+            batch.begin()
+            batch.draw(currentTexture, button.x, button.y, button.width, button.height)
+            batch.end()
+        } else {
+            // Draw filled background
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+            shapeRenderer.color = button.fillColor
+            shapeRenderer.rect(button.x, button.y, button.width, button.height)
+            shapeRenderer.end()
+            
+            // Draw border
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+            shapeRenderer.color = button.borderColor
+            shapeRenderer.rect(button.x, button.y, button.width, button.height)
+            shapeRenderer.end()
+        }
         
         // Draw text
         batch.begin()

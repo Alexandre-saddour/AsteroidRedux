@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.utils.Align
 import com.example.asteroidsredux.AsteroidsGame
 import com.example.asteroidsredux.utils.Button
@@ -12,29 +11,56 @@ import com.example.asteroidsredux.utils.ButtonRenderer
 import com.example.asteroidsredux.utils.Constants
 
 class MenuScreen(game: AsteroidsGame) : BaseScreen(game) {
-    
+
+    // Use global scale factor from Constants
+    private val scaleFactor = Constants.UI.SCALE_FACTOR
+
+    // Dynamic button sizes (base values at 1280x720, scaled by SCALE_FACTOR)
+    private val playButtonWidth = 300f * scaleFactor
+    private val playButtonHeight = 80f * scaleFactor
+    private val customizeButtonWidth = 250f * scaleFactor
+    private val customizeButtonHeight = 60f * scaleFactor
+    private val buttonSpacing = 30f * scaleFactor
+    private val titleOffsetY = 150f * scaleFactor
+    private val titleWidth = 600f * scaleFactor
+    private val titleHeight = 150f * scaleFactor
+
+    // Dynamic text scales
+    private val playTextScale = 2.5f * scaleFactor
+    private val customizeTextScale = 1.8f * scaleFactor
+
+    // Assets
+    private val titleLogo = game.assets.getTitleLogo()
+    private val buttonDefault = game.assets.getButtonDefault()
+    private val buttonPressed = game.assets.getButtonPressed()
+    private val bgStars = game.assets.getBackgroundStars()
+
+    // Background scrolling
+    private var bgScrollX = 0f
+    private val bgScrollSpeed = 30f
+
     private val playButton = Button(
-        x = Constants.WORLD_WIDTH / 2 - 150f,
-        y = Constants.WORLD_HEIGHT / 2 - 20f,
-        width = 300f,
-        height = 80f,
+        x = 0f, // Will be recalculated in render
+        y = 0f,
+        width = playButtonWidth,
+        height = playButtonHeight,
         text = "PLAY",
-        fillColor = Color.DARK_GRAY,
-        borderColor = Color.CYAN,
         textColor = Color.CYAN,
-        textScale = 2.5f
+        textScale = playTextScale,
+        texture = buttonDefault,
+        pressedTexture = buttonPressed
     )
-    
+
     private val customizeButton = Button(
-        x = Constants.WORLD_WIDTH / 2 - 125f,
-        y = Constants.WORLD_HEIGHT / 2 - 130f,
-        width = 250f,
-        height = 60f,
+        x = 0f,
+        y = 0f,
+        width = customizeButtonWidth,
+        height = customizeButtonHeight,
         text = "Customize",
-        fillColor = Color.DARK_GRAY.cpy().apply { a = 0.7f },
-        borderColor = Color.WHITE,
         textColor = Color.WHITE,
-        textScale = 1.8f
+        textScale = customizeTextScale,
+        texture = buttonDefault,
+        pressedTexture = buttonPressed
     )
 
     override fun render(delta: Float) {
@@ -49,29 +75,63 @@ class MenuScreen(game: AsteroidsGame) : BaseScreen(game) {
 
         updateCamera()
 
+        // Scroll background
+        bgScrollX += bgScrollSpeed * delta
+        if (bgScrollX > bgStars.width) bgScrollX = 0f
+
+        game.batch.begin()
+        // Draw scrolling background (tiled)
+        val bgWidth = bgStars.width.toFloat()
+        val bgHeight = bgStars.height.toFloat()
+        val screenWidth = Constants.WORLD_WIDTH
+        val screenHeight = Constants.WORLD_HEIGHT
+        
+        var x = -bgScrollX
+        while (x < screenWidth) {
+            var y = 0f
+            while (y < screenHeight) {
+                game.batch.draw(bgStars, x, y)
+                y += bgHeight
+            }
+            x += bgWidth
+        }
+        game.batch.end()
+
+
         val centerX = Constants.WORLD_WIDTH / 2
         val centerY = Constants.WORLD_HEIGHT / 2
 
-        // Update button positions (in case of resize)
+        // Update button positions and sizes dynamically
         val playBtn = playButton.copy(
-            x = centerX - playButton.width / 2,
-            y = centerY - 20f
+            x = centerX - playButtonWidth / 2,
+            y = centerY - playButtonHeight / 2
         )
         val customizeBtn = customizeButton.copy(
-            x = centerX - customizeButton.width / 2,
-            y = playBtn.y - customizeButton.height - 30f
+            x = centerX - customizeButtonWidth / 2,
+            y = playBtn.y - customizeButtonHeight - buttonSpacing
         )
 
-        // Draw buttons
-        ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), playBtn)
-        ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), customizeBtn)
+        // Check for pressed state
+        val touchX = ButtonRenderer.getTouchX()
+        val touchY = ButtonRenderer.getTouchY()
+        val isTouching = Gdx.input.isTouched
+        
+        val isPlayPressed = isTouching && ButtonRenderer.isClicked(playBtn, touchX, touchY)
+        val isCustomizePressed = isTouching && ButtonRenderer.isClicked(customizeBtn, touchX, touchY)
 
-        // Draw title
+        // Draw buttons
+        ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), playBtn, isPlayPressed)
+        ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), customizeBtn, isCustomizePressed)
+
+        // Draw title logo
         game.batch.begin()
-        val font = game.assets.getFont()
-        font.color = Constants.SHIP_COLOR
-        font.data.setScale(3f)
-        font.draw(game.batch, "ASTEROIDS REDUX", 0f, centerY + 150f, Constants.WORLD_WIDTH, Align.center, false)
+        game.batch.draw(
+            titleLogo,
+            centerX - titleWidth / 2,
+            centerY + titleOffsetY - titleHeight / 2,
+            titleWidth,
+            titleHeight
+        )
         game.batch.end()
 
         handleInput(playBtn, customizeBtn)

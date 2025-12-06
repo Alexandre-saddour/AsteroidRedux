@@ -13,23 +13,39 @@ import com.example.asteroidsredux.utils.Constants
 class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
     private var selectedCategory = SkinCategory.SHIP
     
-    // Layout constants
-    private val tabHeight = 80f
-    private val skinCardWidth = 200f
-    private val skinCardHeight = 250f
-    private val cardSpacing = 30f
+    // Dynamic scale factor
+    private val scaleFactor = Constants.UI.SCALE_FACTOR
+    
+    // Layout constants (dynamic)
+    private val tabHeight = 80f * scaleFactor
+    private val tabWidth = 200f * scaleFactor
+    private val skinCardWidth = 200f * scaleFactor
+    private val skinCardHeight = 250f * scaleFactor
+    private val cardSpacing = 30f * scaleFactor
     private val cardsPerRow = 3
+    
+    // Button sizes (dynamic)
+    private val backButtonWidth = 120f * scaleFactor
+    private val backButtonHeight = 40f * scaleFactor
+    
+    // Text scales (dynamic)
+    private val headerTextScale = 3f * scaleFactor
+    private val tabTextScaleSelected = 1.8f * scaleFactor
+    private val tabTextScaleNormal = 1.5f * scaleFactor
+    private val skinNameTextScale = 1.2f * scaleFactor
+    private val unlockConditionTextScale = 0.9f * scaleFactor
+    private val buttonTextScale = 1.5f * scaleFactor
 
     private val backButton = Button(
-        x = 30f,
-        y = 30f,
-        width = 120f,
-        height = 40f,
+        x = 30f * scaleFactor,
+        y = 30f * scaleFactor,
+        width = backButtonWidth,
+        height = backButtonHeight,
         text = "BACK",
         fillColor = Color(0.2f, 0.2f, 0.3f, 1f),
         borderColor = Color.GRAY,
         textColor = Color.WHITE,
-        textScale = 1.5f
+        textScale = buttonTextScale
     )
 
     override fun render(delta: Float) {
@@ -56,25 +72,24 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
     private fun drawHeader() {
         game.batch.begin()
         val font = game.assets.getFont()
-        font.data.setScale(3f)
+        font.data.setScale(headerTextScale)
         font.color = Color.CYAN
-        font.draw(game.batch, "CUSTOMIZE", 0f, Constants.WORLD_HEIGHT - 30f, Constants.WORLD_WIDTH, Align.center, false)
+        font.draw(game.batch, "CUSTOMIZE", 0f, Constants.WORLD_HEIGHT - 30f * scaleFactor, Constants.WORLD_WIDTH, Align.center, false)
         game.batch.end()
     }
 
     private fun drawCategoryTabs() {
         val categories = SkinCategory.values()
-        val tabWidth = 200f
         val startX = (Constants.WORLD_WIDTH - (categories.size * tabWidth)) / 2f
-        val y = Constants.WORLD_HEIGHT - 120f
+        val y = Constants.WORLD_HEIGHT - 120f * scaleFactor
 
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         game.shapeRenderer.color = Color.DARK_GRAY
-        game.shapeRenderer.rect(startX, y, categories.size * tabWidth, 2f)
+        game.shapeRenderer.rect(startX, y, categories.size * tabWidth, 2f * scaleFactor)
         
         val selectedIndex = categories.indexOf(selectedCategory)
         game.shapeRenderer.color = Color.CYAN
-        game.shapeRenderer.rect(startX + selectedIndex * tabWidth, y, tabWidth, 4f)
+        game.shapeRenderer.rect(startX + selectedIndex * tabWidth, y, tabWidth, 4f * scaleFactor)
         game.shapeRenderer.end()
 
         game.batch.begin()
@@ -83,9 +98,9 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
             val x = startX + i * tabWidth
             val isSelected = category == selectedCategory
             
-            font.data.setScale(if (isSelected) 1.8f else 1.5f)
+            font.data.setScale(if (isSelected) tabTextScaleSelected else tabTextScaleNormal)
             font.color = if (isSelected) Color.WHITE else Color.GRAY
-            font.draw(game.batch, category.name, x, y + 40f, tabWidth, Align.center, false)
+            font.draw(game.batch, category.name, x, y + 40f * scaleFactor, tabWidth, Align.center, false)
         }
         game.batch.end()
     }
@@ -96,7 +111,7 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
         
         val totalWidth = cardsPerRow * skinCardWidth + (cardsPerRow - 1) * cardSpacing
         val startX = (Constants.WORLD_WIDTH - totalWidth) / 2f
-        val startY = Constants.WORLD_HEIGHT - 180f
+        val startY = Constants.WORLD_HEIGHT - 180f * scaleFactor
 
         // First pass: Draw all card backgrounds
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
@@ -109,7 +124,7 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
 
             if (isSelected) {
                 game.shapeRenderer.color = Color.CYAN.cpy().apply { a = 0.2f }
-                game.shapeRenderer.rect(x - 5f, y - 5f, skinCardWidth + 10f, skinCardHeight + 10f)
+                game.shapeRenderer.rect(x - 5f * scaleFactor, y - 5f * scaleFactor, skinCardWidth + 10f * scaleFactor, skinCardHeight + 10f * scaleFactor)
             }
             
             game.shapeRenderer.color = Color(0.15f, 0.15f, 0.25f, 0.9f)
@@ -146,9 +161,9 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
 
             val textureRegion = game.assets.getTextureRegion(skin)
             if (textureRegion != null) {
-                val previewSize = 120f
+                val previewSize = 120f * scaleFactor
                 val previewX = x + (skinCardWidth - previewSize) / 2f
-                val previewY = y + (skinCardHeight - previewSize) / 2f + 20f
+                val previewY = y + (skinCardHeight - previewSize) / 2f + 20f * scaleFactor
                 
                 val color = if (isUnlocked) Color.WHITE else Color.GRAY
                 game.batch.setColor(color)
@@ -157,14 +172,14 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
             }
 
             val font = game.assets.getFont()
-            font.data.setScale(1.2f)
+            font.data.setScale(skinNameTextScale)
             font.color = if (isSelected) Color.CYAN else Color.WHITE
-            font.draw(game.batch, skin.displayName, x, y + 40f, skinCardWidth, Align.center, false)
+            font.draw(game.batch, skin.displayName, x, y + 40f * scaleFactor, skinCardWidth, Align.center, false)
             
             if (!isUnlocked && skin.unlockCondition != null) {
-                font.data.setScale(0.9f)
+                font.data.setScale(unlockConditionTextScale)
                 font.color = Color.GRAY
-                font.draw(game.batch, "🔒 ${skin.unlockCondition}", x, y + 20f, skinCardWidth, Align.center, true)
+                font.draw(game.batch, "🔒 ${skin.unlockCondition}", x, y + 20f * scaleFactor, skinCardWidth, Align.center, true)
             }
         }
         game.batch.end()
@@ -184,11 +199,10 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
 
             // Check category tabs
             val categories = SkinCategory.values()
-            val tabWidth = 200f
             val startX = (Constants.WORLD_WIDTH - (categories.size * tabWidth)) / 2f
-            val tabY = Constants.WORLD_HEIGHT - 120f
+            val tabY = Constants.WORLD_HEIGHT - 120f * scaleFactor
             
-            if (touchY > tabY && touchY < tabY + 60f) {
+            if (touchY > tabY && touchY < tabY + 60f * scaleFactor) {
                 val relativeX = touchX - startX
                 if (relativeX >= 0 && relativeX < categories.size * tabWidth) {
                     val tabIndex = (relativeX / tabWidth).toInt()
@@ -201,7 +215,7 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
             val skins = game.skinManager.getSkinsForCategory(selectedCategory)
             val totalWidth = cardsPerRow * skinCardWidth + (cardsPerRow - 1) * cardSpacing
             val gridStartX = (Constants.WORLD_WIDTH - totalWidth) / 2f
-            val gridStartY = Constants.WORLD_HEIGHT - 180f
+            val gridStartY = Constants.WORLD_HEIGHT - 180f * scaleFactor
 
             for ((i, skin) in skins.withIndex()) {
                 val row = i / cardsPerRow

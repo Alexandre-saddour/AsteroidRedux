@@ -10,6 +10,7 @@ import com.badlogic.gdx.utils.Align
 import com.example.asteroidsredux.input.InputHandler
 import com.example.asteroidsredux.progression.PlayerStats
 import com.example.asteroidsredux.progression.UpgradeDefinition
+import com.example.asteroidsredux.progression.UpgradeId
 import com.example.asteroidsredux.utils.Assets
 import com.example.asteroidsredux.utils.Constants
 
@@ -92,54 +93,184 @@ class Hud(
     private fun drawLevelUpOverlay(offeredUpgrades: List<UpgradeDefinition>) {
         Gdx.gl.glEnable(GL20.GL_BLEND)
 
+        // Darker overlay
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-        shapeRenderer.color = Color(0f, 0f, 0f, 0.9f)
+        shapeRenderer.color = Color(0f, 0f, 0f, 0.95f)
         shapeRenderer.rect(0f, 0f, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
+        shapeRenderer.end()
 
         val totalWidth = offeredUpgrades.size * Constants.UI.CARD_WIDTH + (offeredUpgrades.size - 1) * Constants.UI.CARD_SPACING
         val startX = (Constants.WORLD_WIDTH - totalWidth) / 2f
         val centerY = Constants.WORLD_HEIGHT / 2f
+        val cardY = centerY - Constants.UI.CARD_HEIGHT / 2f
 
-        shapeRenderer.color = Color.DARK_GRAY
+        // Determine which card is selected (hovered)
+        val touchX = Gdx.input.x.toFloat()
+        val touchY = Gdx.input.y.toFloat()
+        val worldPos = uiCamera.unproject(com.badlogic.gdx.math.Vector3(touchX, touchY, 0f))
+        
+        var selectedIndex = -1
         for ((i, _) in offeredUpgrades.withIndex()) {
             val x = startX + i * (Constants.UI.CARD_WIDTH + Constants.UI.CARD_SPACING)
-            val y = centerY - Constants.UI.CARD_HEIGHT / 2f
-            shapeRenderer.rect(x, y, Constants.UI.CARD_WIDTH, Constants.UI.CARD_HEIGHT)
+            if (worldPos.x >= x && worldPos.x <= x + Constants.UI.CARD_WIDTH &&
+                worldPos.y >= cardY && worldPos.y <= cardY + Constants.UI.CARD_HEIGHT) {
+                selectedIndex = i
+                break
+            }
         }
-        shapeRenderer.end()
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        shapeRenderer.color = Color.WHITE
-        for ((i, _) in offeredUpgrades.withIndex()) {
-            val x = startX + i * (Constants.UI.CARD_WIDTH + Constants.UI.CARD_SPACING)
-            val y = centerY - Constants.UI.CARD_HEIGHT / 2f
-            shapeRenderer.rect(x, y, Constants.UI.CARD_WIDTH, Constants.UI.CARD_HEIGHT)
-        }
-        shapeRenderer.end()
 
         batch.begin()
+        val cardTexture = assets.getCard()
+        val cardSelectedTexture = assets.getCardSelected()
+
+        for ((i, _) in offeredUpgrades.withIndex()) {
+            val x = startX + i * (Constants.UI.CARD_WIDTH + Constants.UI.CARD_SPACING)
+            val texture = if (i == selectedIndex) cardSelectedTexture else cardTexture
+            batch.draw(texture, x, cardY, Constants.UI.CARD_WIDTH, Constants.UI.CARD_HEIGHT)
+        }
+        
         val font = assets.getFont()
-        font.color = Color.WHITE
         val cardTop = centerY + Constants.UI.CARD_HEIGHT / 2f
 
-        font.data.setScale(Constants.UI.FONT_SCALE_TITLE)
-        font.draw(batch, "LEVEL UP!", 0f, cardTop + 80f, Constants.WORLD_WIDTH, Align.center, false)
+        // Title "LEVEL UP!" with glow effect (simulated by multiple draws)
+        font.data.setScale(Constants.UI.FONT_SCALE_TITLE * 1.2f)
+        val titleText = "LEVEL UP!"
+        // Move title higher up
+        val titleY = cardTop + 150f
+        
+        // Shadow/Glow
+        font.color = Color.CYAN.cpy().apply { a = 0.3f }
+        font.draw(batch, titleText, 4f, titleY - 4f, Constants.WORLD_WIDTH, Align.center, false)
+        font.draw(batch, titleText, -4f, titleY + 4f, Constants.WORLD_WIDTH, Align.center, false)
+        
+        // Main Title
+        font.color = Color.WHITE
+        font.draw(batch, titleText, 0f, titleY, Constants.WORLD_WIDTH, Align.center, false)
 
         for ((i, upgrade) in offeredUpgrades.withIndex()) {
             val x = startX + i * (Constants.UI.CARD_WIDTH + Constants.UI.CARD_SPACING)
+            val cardCenterX = x + Constants.UI.CARD_WIDTH / 2f
 
+            // Card Title
             font.data.setScale(Constants.UI.FONT_SCALE_HEADER)
-            font.draw(batch, upgrade.displayName, x, cardTop - 60f, Constants.UI.CARD_WIDTH, Align.center, false)
+            font.color = Color.CYAN
+            font.draw(batch, upgrade.displayName, x, cardTop - 40f, Constants.UI.CARD_WIDTH, Align.center, false)
 
+            // Level
             val nextLevel = (playerStats.upgradeLevels[upgrade.id] ?: 0) + 1
-            font.data.setScale(Constants.UI.FONT_SCALE_NORMAL)
-            font.draw(batch, "Level $nextLevel", x, cardTop - 130f, Constants.UI.CARD_WIDTH, Align.center, false)
+            font.data.setScale(Constants.UI.FONT_SCALE_SMALL)
+            font.color = Color.LIGHT_GRAY
+            font.draw(batch, "LVL $nextLevel", x, cardTop - 85f, Constants.UI.CARD_WIDTH, Align.center, false)
 
+            // Icon is drawn later at cardTop - 160f with size 40f (radius approx 40 or size 40? Function uses size as radius/extent)
+            // If size is 40, it extends from -120 to -200 relative to cardTop.
+            
+            // Description
+            // Start description below the icon
+            val descY = cardTop - 230f
             val desc = upgrade.descriptionPerLevel.getOrNull(nextLevel - 1) ?: ""
             font.data.setScale(Constants.UI.FONT_SCALE_NORMAL)
-            font.draw(batch, desc, x + 20f, cardTop - 200f, Constants.UI.CARD_WIDTH - 40f, Align.center, true)
+            font.color = Color.WHITE
+            // Wrap text manually or use a smaller width
+            font.draw(batch, desc, x + 20f, descY, Constants.UI.CARD_WIDTH - 40f, Align.center, true)
         }
         batch.end()
+        
+        // Draw Icons
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        shapeRenderer.color = Color.CYAN
+        for ((i, upgrade) in offeredUpgrades.withIndex()) {
+            val x = startX + i * (Constants.UI.CARD_WIDTH + Constants.UI.CARD_SPACING)
+            val cardCenterX = x + Constants.UI.CARD_WIDTH / 2f
+            val cardTop = centerY + Constants.UI.CARD_HEIGHT / 2f
+            
+            // Center icon vertically in the upper-middle section
+            val iconY = cardTop - 160f
+            val iconSize = 40f
+            
+            drawUpgradeIcon(upgrade.id, cardCenterX, iconY, iconSize)
+        }
+        shapeRenderer.end()
+    }
+
+    private fun drawUpgradeIcon(id: UpgradeId, cx: Float, cy: Float, size: Float) {
+        when (id) {
+            UpgradeId.DAMAGE -> {
+                // Crosshair / Plus
+                shapeRenderer.line(cx - size, cy, cx + size, cy)
+                shapeRenderer.line(cx, cy - size, cx, cy + size)
+                shapeRenderer.circle(cx, cy, size * 0.6f)
+            }
+            UpgradeId.FIRE_RATE -> {
+                // Three parallel bullets/lines
+                shapeRenderer.line(cx - size * 0.5f, cy - size, cx - size * 0.5f, cy + size)
+                shapeRenderer.line(cx, cy - size, cx, cy + size)
+                shapeRenderer.line(cx + size * 0.5f, cy - size, cx + size * 0.5f, cy + size)
+            }
+            UpgradeId.BULLET_SPEED -> {
+                // Arrow pointing right
+                shapeRenderer.line(cx - size, cy, cx + size, cy)
+                shapeRenderer.line(cx + size, cy, cx + size * 0.5f, cy + size * 0.5f)
+                shapeRenderer.line(cx + size, cy, cx + size * 0.5f, cy - size * 0.5f)
+            }
+            UpgradeId.BULLET_RANGE -> {
+                // Target with arrow
+                shapeRenderer.circle(cx, cy, size * 0.3f)
+                shapeRenderer.line(cx - size, cy, cx - size * 0.4f, cy)
+                shapeRenderer.line(cx + size * 0.4f, cy, cx + size, cy)
+                shapeRenderer.line(cx + size, cy, cx + size * 0.7f, cy + size * 0.3f)
+                shapeRenderer.line(cx + size, cy, cx + size * 0.7f, cy - size * 0.3f)
+            }
+            UpgradeId.MULTI_SHOT -> {
+                // Fan shape
+                shapeRenderer.line(cx, cy - size, cx, cy + size)
+                shapeRenderer.line(cx, cy - size, cx - size * 0.8f, cy + size * 0.8f)
+                shapeRenderer.line(cx, cy - size, cx + size * 0.8f, cy + size * 0.8f)
+            }
+            UpgradeId.PIERCE -> {
+                // Arrow going through a line
+                shapeRenderer.line(cx, cy - size, cx, cy + size) // Vertical line
+                shapeRenderer.line(cx - size, cy, cx + size, cy) // Arrow shaft
+                shapeRenderer.line(cx + size, cy, cx + size * 0.6f, cy + size * 0.4f) // Arrow head
+                shapeRenderer.line(cx + size, cy, cx + size * 0.6f, cy - size * 0.4f)
+            }
+            UpgradeId.BULLET_SIZE -> {
+                // Small circle and big circle
+                shapeRenderer.circle(cx - size * 0.5f, cy, size * 0.3f)
+                shapeRenderer.circle(cx + size * 0.5f, cy, size * 0.6f)
+            }
+            UpgradeId.MOVE_SPEED -> {
+                // Chevron / Thruster
+                shapeRenderer.line(cx - size, cy - size, cx, cy)
+                shapeRenderer.line(cx - size, cy + size, cx, cy)
+                shapeRenderer.line(cx, cy - size, cx + size, cy)
+                shapeRenderer.line(cx, cy + size, cx + size, cy)
+            }
+            UpgradeId.MAX_HP -> {
+                // Heart-ish or Cross
+                shapeRenderer.rect(cx - size * 0.3f, cy - size * 0.8f, size * 0.6f, size * 1.6f)
+                shapeRenderer.rect(cx - size * 0.8f, cy - size * 0.3f, size * 1.6f, size * 0.6f)
+            }
+            UpgradeId.SHIELD -> {
+                // Shield outline
+                shapeRenderer.circle(cx, cy, size)
+                shapeRenderer.circle(cx, cy, size * 0.7f)
+            }
+            UpgradeId.MAGNET -> {
+                // U shape
+                shapeRenderer.arc(cx, cy, size, 180f, 180f)
+                shapeRenderer.line(cx - size, cy, cx - size, cy + size * 0.5f)
+                shapeRenderer.line(cx + size, cy, cx + size, cy + size * 0.5f)
+            }
+            UpgradeId.EXPLOSION_RADIUS -> {
+                // Star / Explosion
+                shapeRenderer.circle(cx, cy, size * 0.4f)
+                shapeRenderer.line(cx - size, cy, cx + size, cy)
+                shapeRenderer.line(cx, cy - size, cx, cy + size)
+                shapeRenderer.line(cx - size * 0.7f, cy - size * 0.7f, cx + size * 0.7f, cy + size * 0.7f)
+                shapeRenderer.line(cx - size * 0.7f, cy + size * 0.7f, cx + size * 0.7f, cy - size * 0.7f)
+            }
+        }
     }
 
     fun handleLevelUpInput(offeredUpgrades: List<UpgradeDefinition>, onSelect: (UpgradeDefinition) -> Unit) {
