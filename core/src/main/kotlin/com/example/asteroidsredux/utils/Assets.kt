@@ -24,12 +24,15 @@ class Assets : Disposable {
         manager.load("sprites/atlas.atlas", TextureAtlas::class.java)
     }
 
+    private lateinit var font: BitmapFont
+
     fun finishLoading() {
         manager.finishLoading()
         atlas = manager.get("sprites/atlas.atlas", TextureAtlas::class.java)
+        font = BitmapFont() // Load default font once
     }
 
-    fun getFont(): BitmapFont = BitmapFont()
+    fun getFont(): BitmapFont = font
     fun getShootSound(): Sound = manager.get("sounds/shoot.wav", Sound::class.java)
     fun getExplosionSound(): Sound = manager.get("sounds/explosion.wav", Sound::class.java)
 
@@ -51,12 +54,13 @@ class Assets : Disposable {
     }
 
     // UI Assets (Retrieved from Atlas)
-    fun getTitleLogo(): TextureRegion = atlas.findRegion("title_logo")
-    fun getButtonDefault(): TextureRegion = atlas.findRegion("ui_button_default")
-    fun getButtonPressed(): TextureRegion = atlas.findRegion("ui_button_pressed")
+    // UI Assets (Retrieved from Atlas)
+    fun getTitleLogo(): TextureRegion = atlas.findRegion("ui/title_logo")
+    fun getButtonDefault(): TextureRegion = atlas.findRegion("ui/ui_button_default")
+    fun getButtonPressed(): TextureRegion = atlas.findRegion("ui/ui_button_pressed")
     fun getBackgroundStars(): TextureRegion = atlas.findRegion("bg_stars")
-    fun getCard(): TextureRegion = atlas.findRegion("ui_card")
-    fun getCardSelected(): TextureRegion = atlas.findRegion("ui_card_selected")
+    fun getCard(): TextureRegion = atlas.findRegion("ui/ui_card")
+    fun getCardSelected(): TextureRegion = atlas.findRegion("ui/ui_card_selected")
 
     override fun dispose() {
         manager.dispose()
