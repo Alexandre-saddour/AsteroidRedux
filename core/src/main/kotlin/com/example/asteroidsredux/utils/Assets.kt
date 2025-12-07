@@ -13,6 +13,8 @@ import com.example.asteroidsredux.skins.AsteroidSkinId
 import com.example.asteroidsredux.skins.Skin
 import com.example.asteroidsredux.skins.ShipSkinCatalog
 import com.example.asteroidsredux.skins.ShipSkinId
+import com.example.asteroidsredux.skins.BackgroundSkinCatalog
+import com.example.asteroidsredux.skins.BackgroundSkinId
 
 class Assets : Disposable {
     val manager = AssetManager()
@@ -45,6 +47,7 @@ class Assets : Disposable {
     // Type-specific convenience methods
     fun getShipTexture(skinId: ShipSkinId): TextureRegion? = getTextureRegion(ShipSkinCatalog.getSkin(skinId))
     fun getAsteroidTexture(skinId: AsteroidSkinId): TextureRegion? = getTextureRegion(AsteroidSkinCatalog.getSkin(skinId))
+    fun getBackgroundTexture(skinId: BackgroundSkinId): TextureRegion? = getTextureRegion(BackgroundSkinCatalog.getSkin(skinId))
     fun getShipTexture(): TextureRegion? = getShipTexture(ShipSkinId.SHIP_1)
 
     fun getThrustAnimationRegions(skinId: ShipSkinId): Array<TextureAtlas.AtlasRegion>? {

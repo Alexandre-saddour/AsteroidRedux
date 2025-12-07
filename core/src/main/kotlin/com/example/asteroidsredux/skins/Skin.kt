@@ -25,13 +25,13 @@ interface SkinRegistry<T : Skin> {
  */
 enum class SkinCategory {
     SHIP,
-    ASTEROID;
-    // BULLET,
-    // BACKGROUND;
+    ASTEROID,
+    BACKGROUND;
     
     val registry: SkinRegistry<out Skin>
         get() = when (this) {
             SHIP -> ShipSkinCatalog
             ASTEROID -> AsteroidSkinCatalog
+            BACKGROUND -> BackgroundSkinCatalog
         }
 }

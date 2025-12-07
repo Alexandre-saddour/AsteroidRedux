@@ -30,6 +30,8 @@ abstract class BaseScreen(protected val game: AsteroidsGame) : ScreenAdapter() {
 
     abstract fun drawUi(delta: Float)
 
+    protected open val showSharedBackground: Boolean = true
+
     override fun render(delta: Float) {
         // Standard render: Clear screen, draw background, draw UI
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
@@ -38,8 +40,10 @@ abstract class BaseScreen(protected val game: AsteroidsGame) : ScreenAdapter() {
         updateCamera()
         
         // Update and draw background
-        game.backgroundRenderer.update(delta)
-        game.backgroundRenderer.draw(game.batch)
+        if (showSharedBackground) {
+            game.backgroundRenderer.update(delta)
+            game.backgroundRenderer.draw(game.batch)
+        }
 
         drawUi(delta)
     }

@@ -30,8 +30,8 @@ class GameRenderer(
     }
 
     fun render() {
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        // Screen is cleared by BaseScreen
+
 
         // Update camera to follow ship
         camera.position.set(world.ship.position.x, world.ship.position.y, 0f)
