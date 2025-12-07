@@ -64,11 +64,17 @@ void main() {
         vec2 center = vec2(0.5, 0.5);
         vec2 dir = normalize(center - localUV);
         
+        // Add turbulence/distortion for a "messier" look
+        // We use a lower frequency noise to distort the domain
+        vec2 turbulence = vec2(
+            fbm(localUV * 4.0 + vec2(t * 0.5, 0.0)),
+            fbm(localUV * 4.0 + vec2(0.0, t * 0.5))
+        );
+        
         // Sharper noise for lightning/electric look
-        // Use FBM but distort UVs more aggressively
+        // Use FBM but distort UVs more aggressively with turbulence
         // Animate along the direction vector (towards center)
-        // We subtract dir * t because noise(p - dir*t) moves the pattern in direction 'dir'
-        float n = fbm(localUV * 20.0 - dir * t * 2.0);
+        float n = fbm(localUV * 20.0 + turbulence * 3.0 - dir * t * 2.0);
         
         // Create "strands" or "bolts" using abs()
         // This makes it look less like a cloud and more like energy
