@@ -12,15 +12,17 @@ class AsteroidsGame : Game() {
     lateinit var shapeRenderer: ShapeRenderer
     lateinit var assets: Assets
     lateinit var skinManager: SkinManager
+    lateinit var backgroundRenderer: com.example.asteroidsredux.utils.BackgroundRenderer
 
     override fun create() {
         batch = SpriteBatch()
         shapeRenderer = ShapeRenderer()
         assets = Assets()
         skinManager = SkinManager()
-        
         assets.load()
         assets.finishLoading()
+        
+        backgroundRenderer = com.example.asteroidsredux.utils.BackgroundRenderer(this)
 
         setScreen(MenuScreen(this))
     }
@@ -30,5 +32,9 @@ class AsteroidsGame : Game() {
         shapeRenderer.dispose()
         assets.dispose()
         super.dispose()
+    }
+
+    fun changeScreen(newScreen: com.badlogic.gdx.Screen, type: com.example.asteroidsredux.screens.TransitionType) {
+        setScreen(com.example.asteroidsredux.screens.TransitionScreen(this, this.screen, newScreen, type))
     }
 }

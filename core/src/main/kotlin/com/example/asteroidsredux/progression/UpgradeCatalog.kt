@@ -38,9 +38,9 @@ object UpgradeCatalog {
             displayName = "Bullet Range",
             descriptionPerLevel = listOf(
                 "Bullet range +30%",
-                "Bullet range +60%",
-                "Bullet range +90%",
-                "Bullet range +120%"
+                "Bullet range +30% (+60% in total)",
+                "Bullet range +30% (+90% in total)",
+                "Bullet range +30% (+120% in total)"
             )
         ),
         UpgradeDefinition(
@@ -74,9 +74,9 @@ object UpgradeCatalog {
             displayName = "Move Speed",
             descriptionPerLevel = listOf(
                 "Ship speed +15%",
-                "Ship speed +30%",
-                "Ship speed +45%",
-                "Ship speed +60%"
+                "Ship speed +15% (+30% in total)",
+                "Ship speed +15% (+45% in total)",
+                "Ship speed +15% (+60% in total)"
             )
         ),
         UpgradeDefinition(
@@ -111,7 +111,7 @@ object UpgradeCatalog {
             descriptionPerLevel = listOf(
                 "Small explosion on kill",
                 "Explosion radius +25%",
-                "Explosion radius +50%"
+                "Explosion radius +25% (+50% in total)"
             )
         )
     )

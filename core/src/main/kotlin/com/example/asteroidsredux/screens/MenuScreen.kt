@@ -32,11 +32,6 @@ class MenuScreen(game: AsteroidsGame) : BaseScreen(game) {
     private val titleLogo = game.assets.getTitleLogo()
     private val buttonDefault = game.assets.getButtonDefault()
     private val buttonPressed = game.assets.getButtonPressed()
-    private val bgStars = game.assets.getBackgroundStars()
-
-    // Background scrolling
-    private var bgScrollX = 0f
-    private val bgScrollSpeed = 30f
 
     private val playButton = Button(
         x = 0f, // Will be recalculated in render
@@ -55,47 +50,15 @@ class MenuScreen(game: AsteroidsGame) : BaseScreen(game) {
         y = 0f,
         width = customizeButtonWidth,
         height = customizeButtonHeight,
-        text = "Customize",
+        text = "Skin Selection",
         textColor = Color.WHITE,
         textScale = customizeTextScale,
         texture = buttonDefault,
         pressedTexture = buttonPressed
     )
 
-    override fun render(delta: Float) {
-        // Handle back button to exit app from main menu
-        if (Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
-            Gdx.app.exit()
-            return
-        }
-
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-
-        updateCamera()
-
-        // Scroll background
-        bgScrollX += bgScrollSpeed * delta
-        if (bgScrollX > bgStars.regionWidth) bgScrollX = 0f
-
-        game.batch.begin()
-        // Draw scrolling background (tiled)
-        val bgWidth = bgStars.regionWidth.toFloat()
-        val bgHeight = bgStars.regionHeight.toFloat()
-        val screenWidth = Constants.WORLD_WIDTH
-        val screenHeight = Constants.WORLD_HEIGHT
-
-        var x = -bgScrollX
-        while (x < screenWidth) {
-            var y = 0f
-            while (y < screenHeight) {
-                game.batch.draw(bgStars, x, y)
-                y += bgHeight
-            }
-            x += bgWidth
-        }
-        game.batch.end()
-
+    override fun drawUi(delta: Float) {
+        // updateCamera() is called by BaseScreen before drawUi
 
         val centerX = Constants.WORLD_WIDTH / 2
         val centerY = Constants.WORLD_HEIGHT / 2
@@ -133,24 +96,29 @@ class MenuScreen(game: AsteroidsGame) : BaseScreen(game) {
         )
         game.batch.end()
 
-        handleInput(playBtn, customizeBtn)
-    }
-
-    private fun handleInput(playBtn: Button, customizeBtn: Button) {
-        if (Gdx.input.justTouched()) {
-            val touchX = ButtonRenderer.getTouchX()
-            val touchY = ButtonRenderer.getTouchY()
-
-            if (ButtonRenderer.isClicked(playBtn, touchX, touchY)) {
-                game.screen = GameScreen(game)
-                dispose()
+        // Only handle input if this is the active screen
+        if (game.screen == this) {
+            // Handle back button to exit app from main menu
+            if (Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
+                Gdx.app.exit()
                 return
             }
 
-            if (ButtonRenderer.isClicked(customizeBtn, touchX, touchY)) {
-                game.screen = SkinSelectionScreen(game)
-                dispose()
-                return
+            if (Gdx.input.justTouched()) {
+                val touchX = ButtonRenderer.getTouchX()
+                val touchY = ButtonRenderer.getTouchY()
+
+                if (ButtonRenderer.isClicked(playBtn, touchX, touchY)) {
+                    game.screen = GameScreen(game)
+                    dispose()
+                    return
+                }
+
+                if (ButtonRenderer.isClicked(customizeBtn, touchX, touchY)) {
+                    game.changeScreen(SkinSelectionScreen(game), TransitionType.MENU_TO_CUSTOMIZE)
+                    // dispose() is handled by TransitionScreen/Game
+                    return
+                }
             }
         }
     }

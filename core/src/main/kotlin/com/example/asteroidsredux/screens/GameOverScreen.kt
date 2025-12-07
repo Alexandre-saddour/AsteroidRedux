@@ -33,11 +33,8 @@ class GameOverScreen(game: AsteroidsGame, private val score: Int) : BaseScreen(g
         textScale = buttonTextScale
     )
 
-    override fun render(delta: Float) {
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-
-        updateCamera()
+    override fun drawUi(delta: Float) {
+        // updateCamera() is called by BaseScreen
 
         val centerX = Constants.WORLD_WIDTH / 2
         val centerY = Constants.WORLD_HEIGHT / 2

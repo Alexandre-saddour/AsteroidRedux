@@ -19,15 +19,10 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
     private val scaleFactor = Constants.UI.SCALE_FACTOR
 
     // Assets
-    private val bgStars = game.assets.getBackgroundStars()
     private val buttonDefault = game.assets.getButtonDefault()
     private val buttonPressed = game.assets.getButtonPressed()
     private val uiCard = game.assets.getCard()
     private val uiCardSelected = game.assets.getCardSelected()
-
-    // Background scrolling
-    private var bgScrollX = 0f
-    private val bgScrollSpeed = 30f
 
     // Layout constants (dynamic)
     private val tabHeight = 60f * scaleFactor
@@ -71,40 +66,15 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
     // Scissor rectangle for clipping
     private val scissors = Rectangle()
 
-    override fun render(delta: Float) {
+    override fun drawUi(delta: Float) {
         // Handle back button (hardware)
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.BACK)) {
-            game.screen = MenuScreen(game)
-            dispose()
+            game.changeScreen(MenuScreen(game), com.example.asteroidsredux.screens.TransitionType.CUSTOMIZE_TO_MENU)
+            // dispose() is handled by TransitionScreen/Game
             return
         }
 
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-
-        updateCamera()
-
-        // Scroll background
-        bgScrollX += bgScrollSpeed * delta
-        if (bgScrollX > bgStars.regionWidth) bgScrollX = 0f
-
-        game.batch.begin()
-        // Draw scrolling background (tiled)
-        val bgWidth = bgStars.regionWidth.toFloat()
-        val bgHeight = bgStars.regionHeight.toFloat()
-        val screenWidth = Constants.WORLD_WIDTH
-        val screenHeight = Constants.WORLD_HEIGHT
-
-        var x = -bgScrollX
-        while (x < screenWidth) {
-            var y = 0f
-            while (y < screenHeight) {
-                game.batch.draw(bgStars, x, y)
-                y += bgHeight
-            }
-            x += bgWidth
-        }
-        game.batch.end()
+        // updateCamera() is called by BaseScreen
 
         drawHeader()
         drawCategoryTabs()
@@ -252,6 +222,9 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
     private var wasTouched = false
 
     private fun handleInput() {
+        // Only handle input if this is the active screen
+        if (game.screen != this) return
+
         val touchX = ButtonRenderer.getTouchX()
         val touchY = ButtonRenderer.getTouchY()
         val isTouched = Gdx.input.isTouched
@@ -264,8 +237,7 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
 
                 // Check back button (always visible)
                 if (ButtonRenderer.isClicked(backButton, touchX, touchY)) {
-                    game.screen = MenuScreen(game)
-                    dispose()
+                    game.changeScreen(MenuScreen(game), com.example.asteroidsredux.screens.TransitionType.CUSTOMIZE_TO_MENU)
                     return
                 }
 

@@ -28,6 +28,29 @@ abstract class BaseScreen(protected val game: AsteroidsGame) : ScreenAdapter() {
         Constants.WORLD_HEIGHT = height.toFloat()// * 2f
     }
 
+    abstract fun drawUi(delta: Float)
+
+    override fun render(delta: Float) {
+        // Standard render: Clear screen, draw background, draw UI
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT)
+
+        updateCamera()
+        
+        // Update and draw background
+        game.backgroundRenderer.update(delta)
+        game.backgroundRenderer.draw(game.batch)
+
+        drawUi(delta)
+    }
+
+    fun renderUiOnly(delta: Float) {
+        // Draw UI only (no clear, no background)
+        // Assumes camera is already updated or will be updated inside drawUi if needed
+        updateCamera()
+        drawUi(delta)
+    }
+
     protected fun updateCamera() {
         camera.update()
         game.batch.projectionMatrix = camera.combined
