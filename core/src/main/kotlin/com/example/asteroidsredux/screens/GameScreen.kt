@@ -3,6 +3,7 @@ package com.example.asteroidsredux.screens
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
@@ -142,27 +143,29 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
     override val showSharedBackground: Boolean
         get() = isInIntroAnimation
 
-    override fun drawUi(delta: Float) {
-        // Draw Parallax Background only after intro is complete
-        // During intro, the shared background is used (via showSharedBackground)
-        if (!isInIntroAnimation) {
-            drawBackground()
-        }
 
-        // Handle back button to return to menu (disabled during intro)
-        if (!isInIntroAnimation && game.screen == this && Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
-            game.changeScreen(MenuScreen(game), com.example.asteroidsredux.screens.TransitionType.CUSTOMIZE_TO_MENU)
-            // dispose() is handled by TransitionScreen/Game
-            return
-        }
+    // Background System
+    private val backgroundSystem = com.example.asteroidsredux.graphics.background.BackgroundSystem(game.batch, game.assets, gameRenderer.camera)
 
+    override fun render(delta: Float) {
         // Handle intro animation
         if (isInIntroAnimation) {
             updateIntroAnimation(delta)
             
             // During entity slide phase, render the game world
             if (introPhase == 1) {
+                // Render background
+                game.batch.projectionMatrix = gameRenderer.camera.combined
+                game.batch.begin()
+                backgroundSystem.renderBackground()
+                game.batch.end()
+
                 gameRenderer.render()
+                
+                // Render foreground
+                game.batch.begin()
+                backgroundSystem.renderForeground()
+                game.batch.end()
             }
             
             // During UI fade phase, render menu UI with fading alpha
@@ -176,6 +179,7 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
 
         if (!isPaused) {
             update(delta)
+            backgroundSystem.update(delta)
         } else {
             levelUpMenuOpenedTime += delta
             hud.handleLevelUpInput(offeredUpgrades) { upgrade ->
@@ -183,10 +187,42 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
             }
         }
 
+        // Render
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
+        // 1. Background Layers (Nebula, Stars)
+        game.batch.projectionMatrix = gameRenderer.camera.combined
+        game.batch.begin()
+        backgroundSystem.renderBackground()
+        game.batch.end()
+
+        // 2. Game World
         gameRenderer.render()
+        
+        // 3. Foreground Layers (Debris, Lights)
+        game.batch.begin()
+        backgroundSystem.renderForeground()
+        game.batch.end()
+
         hud.render(score, isPaused, offeredUpgrades)
     }
     
+    override fun drawUi(delta: Float) {
+        // Draw Parallax Background only after intro is complete
+        // During intro, the shared background is used (via showSharedBackground)
+        // But now we use BackgroundSystem, so we don't need to draw background here specifically for UI?
+        // Actually, BaseScreen might clear screen? No, BaseScreen just calls drawUi.
+        // GameScreen.render handles clearing and drawing background.
+        // So drawUi just needs to handle UI elements like back button.
+        
+        // Handle back button (hardware)
+        if (!isInIntroAnimation && game.screen == this && Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
+            game.changeScreen(MenuScreen(game), com.example.asteroidsredux.screens.TransitionType.CUSTOMIZE_TO_MENU)
+            return
+        }
+    }
+
     private fun updateIntroAnimation(delta: Float) {
         introTime += delta
         
@@ -233,10 +269,6 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
         if (introTime >= slideDuration) {
             isInIntroAnimation = false
             gameRenderer.isIntroMode = false
-            
-            // Sync parallax background offset with shared background to prevent jump
-            totalOffsetX = -game.backgroundRenderer.scrollX
-            totalOffsetY = 0f
             
             // Ensure final positions are exact
             ship.position.set(shipTargetPosition)
@@ -305,59 +337,7 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
         game.batch.end()
     }
 
-    private var totalOffsetX = -game.backgroundRenderer.scrollX
-    private var totalOffsetY = 0f
-
-    private fun drawBackground() {
-        val bgSkin = game.skinManager.getSelectedBackgroundSkin()
-        val region = game.assets.getBackgroundTexture(com.example.asteroidsredux.skins.BackgroundSkinId.valueOf(bgSkin.id))
-
-        if (region != null) {
-            game.batch.begin()
-            game.batch.disableBlending()
-
-            val tileW = region.regionWidth.toFloat()
-            val tileH = region.regionHeight.toFloat()
-
-            // Parallax factor (0.2 means background moves at 20% of ship speed)
-            val parallaxFactor = 0.2f
-
-            // Accumulate offset based on ship velocity
-            // We use Gdx.graphics.deltaTime for smooth rendering update
-            // Note: We should ideally do this in update() but doing it here is fine for visual effect
-            val delta = Gdx.graphics.deltaTime
-            totalOffsetX -= ship.velocity.x * delta * parallaxFactor
-            totalOffsetY -= ship.velocity.y * delta * parallaxFactor
-
-            // Calculate the starting position for the first tile
-            // We use modulo to find the offset within a single tile
-            // We subtract tileW/tileH to ensure we always have a buffer on the left/top
-            var startX = (totalOffsetX % tileW)
-            if (startX > 0) startX -= tileW
-
-            var startY = (totalOffsetY % tileH)
-            if (startY > 0) startY -= tileH
-
-            // Draw enough tiles to cover the screen
-            val cols = (Constants.WORLD_WIDTH / tileW).toInt() + 2
-            val rows = (Constants.WORLD_HEIGHT / tileH).toInt() + 2
-
-            for (col in 0 until cols) {
-                for (row in 0 until rows) {
-                    game.batch.draw(
-                        region,
-                        startX + col * tileW,
-                        startY + row * tileH,
-                        tileW,
-                        tileH
-                    )
-                }
-            }
-
-            game.batch.enableBlending()
-            game.batch.end()
-        }
-    }
+    // Removed drawBackground and offsets as they are replaced by BackgroundSystem
 
     private fun update(delta: Float) {
         // Shooting Logic

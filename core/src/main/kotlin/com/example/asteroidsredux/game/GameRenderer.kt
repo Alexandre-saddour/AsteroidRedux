@@ -18,7 +18,7 @@ class GameRenderer(
     private val assets: Assets,
     private val skinManager: SkinManager
 ) {
-    private val camera = OrthographicCamera()
+    val camera = OrthographicCamera()
     var zoomFactor = Constants.Rendering.DEFAULT_ZOOM
 
     // When true, camera stays centered on screen instead of following ship
