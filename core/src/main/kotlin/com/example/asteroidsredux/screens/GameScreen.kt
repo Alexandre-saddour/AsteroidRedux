@@ -210,7 +210,7 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
         val progress = (introTime / slideDuration).coerceIn(0f, 1f)
         
         // Use easing for smooth animation
-        val easedProgress = Interpolation.pow2Out.apply(progress)
+        val easedProgress = Interpolation.exp10Out.apply(progress)
         
         // Animate ship from bottom to center
         val shipStartY = -Constants.SHIP_SIZE * 3

@@ -59,9 +59,15 @@ void main() {
     if (dist < 0.15) {
         float t = u_time * 3.0;
         
+        // Calculate direction towards center (0.5, 0.5)
+        vec2 center = vec2(0.5, 0.5);
+        vec2 dir = normalize(center - localUV);
+        
         // Sharper noise for lightning/electric look
         // Use FBM but distort UVs more aggressively
-        float n = fbm(localUV * 20.0 - vec2(0.0, t * 0.5));
+        // Animate along the direction vector (towards center)
+        // We subtract dir * t because noise(p - dir*t) moves the pattern in direction 'dir'
+        float n = fbm(localUV * 20.0 - dir * t * 2.0);
         
         // Create "strands" or "bolts" using abs()
         // This makes it look less like a cloud and more like energy
