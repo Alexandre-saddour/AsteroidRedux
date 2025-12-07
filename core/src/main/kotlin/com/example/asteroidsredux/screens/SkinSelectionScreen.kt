@@ -66,6 +66,10 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
     // Scissor rectangle for clipping
     private val scissors = Rectangle()
 
+    // Shader animation state
+    private var selectionTime = 0f
+    private var lastSelectedSkinId: String? = null
+
     override fun drawUi(delta: Float) {
         // Handle back button (hardware)
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.BACK)) {
@@ -189,14 +193,26 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
 
             // Draw Card Background
             val cardBg = if (isSelected) uiCardSelected else uiCard
-            
+
             if (isSelected) {
+                // Check if selection changed
+                if (skin.id != lastSelectedSkinId) {
+                    lastSelectedSkinId = skin.id
+                    selectionTime = 0f
+                }
+
+                // Update selection time
+                selectionTime += Gdx.graphics.deltaTime
+                val activationDuration = 0.5f
+                val activation = (selectionTime / activationDuration).coerceIn(0f, 1f)
+
                 val shader = game.assets.shaderManager.get("cold")
                 game.batch.shader = shader
                 shader.setUniformf("u_time", com.example.asteroidsredux.AsteroidsGame.stateTime)
                 shader.setUniformf("u_lightningColor", 0f, 1f, 1f, 1f) // Cyan
                 shader.setUniformf("u_regionBounds", cardBg.u, cardBg.v, cardBg.u2, cardBg.v2)
-                
+                shader.setUniformf("u_activation", activation)
+
                 game.batch.draw(cardBg, x, y, skinCardWidth, skinCardHeight)
                 game.batch.shader = null
             } else {

@@ -9,6 +9,7 @@ uniform sampler2D u_texture;
 uniform float u_time;
 uniform vec4 u_lightningColor; // Color of the lightning
 uniform vec4 u_regionBounds; // u, v, u2, v2 of the texture region in the atlas
+uniform float u_activation; // 0.0 to 1.0, controls apparition animation
 
 // Simple pseudo-random noise
 float random(vec2 st) {
@@ -71,7 +72,9 @@ void main() {
         
         // Create "strands" or "bolts" using abs()
         // This makes it look less like a cloud and more like energy
-        float strands = 1.0 - smoothstep(0.0, 0.4, abs(n - 0.5));
+        // Animate strand width with activation
+        float strandWidth = 0.4 * u_activation;
+        float strands = 1.0 - smoothstep(0.0, strandWidth, abs(n - 0.5));
         
         // Fade out as we go inwards
         float fade = smoothstep(0.15, 0.0, dist);
@@ -85,6 +88,9 @@ void main() {
         
         // Boost alpha for core strands
         alpha = pow(alpha, 0.8); 
+        
+        // Apply activation fade
+        alpha *= u_activation;
         
         // Color
         vec3 color = u_lightningColor.rgb;
