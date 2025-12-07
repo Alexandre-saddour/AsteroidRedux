@@ -52,16 +52,9 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
 
     override fun drawUi(delta: Float) {
         // Handle back button to return to menu
-        if (Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
-            game.changeScreen(MenuScreen(game), com.example.asteroidsredux.screens.TransitionType.CUSTOMIZE_TO_MENU) // Use transition for consistency? Or just simple switch? MenuScreen uses transitions. Let's use simple switch for now or standard transition. 
-            // Actually, Game -> Menu transition wasn't specified. Let's stick to simple switch or use FADE.
-            // But wait, the user asked for specific transitions for Menu <-> Customize.
-            // For Game -> Menu, let's just use FADE if we want, or keep it simple.
-            // The existing code used game.screen = MenuScreen(game).
-            // I'll keep it simple for now but use changeScreen if I want transition.
-            // Let's just fix the compilation error first.
-            game.screen = MenuScreen(game)
-            dispose()
+        if (game.screen == this && Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
+            game.changeScreen(MenuScreen(game), com.example.asteroidsredux.screens.TransitionType.CUSTOMIZE_TO_MENU)
+            // dispose() is handled by TransitionScreen/Game
             return
         }
 

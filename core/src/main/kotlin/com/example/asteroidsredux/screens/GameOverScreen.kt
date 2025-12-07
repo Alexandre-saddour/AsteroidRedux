@@ -56,7 +56,7 @@ class GameOverScreen(game: AsteroidsGame, private val score: Int) : BaseScreen(g
         )
         ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), btn)
 
-        if (Gdx.input.justTouched()) {
+        if (game.screen == this && Gdx.input.justTouched()) {
             game.screen = GameScreen(game)
             dispose()
         }
