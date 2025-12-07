@@ -81,6 +81,11 @@ object Constants {
         const val INITIAL_ASTEROID_COUNT = 9
         const val LEVEL_UP_INPUT_DELAY = 0.75f
         const val WAVE_SPAWN_MULTIPLIER = 2 // + level
+        
+        // Intro animation durations
+        const val INTRO_UI_FADE_DURATION = 0.5f
+        const val INTRO_SLIDE_DURATION = 1.0f
+        const val INTRO_TOTAL_DURATION = 1.5f
     }
 
     object Rendering {

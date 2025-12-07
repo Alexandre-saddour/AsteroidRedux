@@ -20,6 +20,9 @@ class GameRenderer(
 ) {
     private val camera = OrthographicCamera()
     var zoomFactor = Constants.Rendering.DEFAULT_ZOOM
+    
+    // When true, camera stays centered on screen instead of following ship
+    var isIntroMode = false
 
     init {
         camera.setToOrtho(false, Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
@@ -32,9 +35,12 @@ class GameRenderer(
     fun render() {
         // Screen is cleared by BaseScreen
 
-
-        // Update camera to follow ship
-        camera.position.set(world.ship.position.x, world.ship.position.y, 0f)
+        // Update camera - either follow ship or stay centered (intro mode)
+        if (isIntroMode) {
+            camera.position.set(Constants.WORLD_WIDTH / 2, Constants.WORLD_HEIGHT / 2, 0f)
+        } else {
+            camera.position.set(world.ship.position.x, world.ship.position.y, 0f)
+        }
         camera.zoom = zoomFactor
         camera.update()
 

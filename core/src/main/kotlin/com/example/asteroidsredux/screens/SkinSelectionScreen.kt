@@ -76,7 +76,7 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
 
         // updateCamera() is called by BaseScreen
 
-        drawHeader()
+//        drawHeader()
         drawCategoryTabs()
 
         // Calculate grid area for clipping
