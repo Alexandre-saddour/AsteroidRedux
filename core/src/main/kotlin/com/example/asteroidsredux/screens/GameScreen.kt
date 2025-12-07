@@ -127,6 +127,8 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
             
             // Move asteroid to start position
             asteroid.position.set(startPos)
+            // Sync polygon position for classic skin rendering
+            asteroid.polygon.setPosition(asteroid.position.x, asteroid.position.y)
         }
     }
 
@@ -197,9 +199,11 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
                 // Move to phase 1
                 introPhase = 1
                 introTime = 0f // Reset time for phase 1
+                // Fall through to execute Phase 1 logic immediately
+            } else {
+                // Don't move entities during UI fade phase
+                return
             }
-            // Don't move entities during UI fade phase
-            return
         }
         
         // Phase 1: Entity slide-in

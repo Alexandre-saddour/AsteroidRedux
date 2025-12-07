@@ -50,6 +50,11 @@ class GameRenderer(
 
         for (xOffset in -1..1) {
             for (yOffset in -1..1) {
+                // In intro mode, only render the center world (no wrapping)
+                // This prevents "ghost" asteroids from appearing on the opposite side
+                // while sliding in from off-screen
+                if (isIntroMode && (xOffset != 0 || yOffset != 0)) continue
+
                 val offsetX = xOffset * w
                 val offsetY = yOffset * h
                 
