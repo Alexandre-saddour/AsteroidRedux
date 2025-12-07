@@ -192,31 +192,33 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
             val isUnlocked = game.skinManager.isUnlocked(selectedCategory, skin.id)
 
             // Draw Card Background
-            val cardBg = if (isSelected) uiCardSelected else uiCard
-
+            // Always draw unselected card as base
+            game.batch.draw(uiCard, x, y, skinCardWidth, skinCardHeight)
+            
             if (isSelected) {
                 // Check if selection changed
                 if (skin.id != lastSelectedSkinId) {
                     lastSelectedSkinId = skin.id
                     selectionTime = 0f
                 }
-
+                
                 // Update selection time
                 selectionTime += Gdx.graphics.deltaTime
                 val activationDuration = 0.5f
                 val activation = (selectionTime / activationDuration).coerceIn(0f, 1f)
-
+                
                 val shader = game.assets.shaderManager.get("cold")
                 game.batch.shader = shader
                 shader.setUniformf("u_time", com.example.asteroidsredux.AsteroidsGame.stateTime)
                 shader.setUniformf("u_lightningColor", 0f, 1f, 1f, 1f) // Cyan
-                shader.setUniformf("u_regionBounds", cardBg.u, cardBg.v, cardBg.u2, cardBg.v2)
+                shader.setUniformf("u_regionBounds", uiCardSelected.u, uiCardSelected.v, uiCardSelected.u2, uiCardSelected.v2)
                 shader.setUniformf("u_activation", activation)
-
-                game.batch.draw(cardBg, x, y, skinCardWidth, skinCardHeight)
+                
+                // Fade in the selected card on top
+                game.batch.setColor(1f, 1f, 1f, activation)
+                game.batch.draw(uiCardSelected, x, y, skinCardWidth, skinCardHeight)
+                game.batch.setColor(Color.WHITE)
                 game.batch.shader = null
-            } else {
-                game.batch.draw(cardBg, x, y, skinCardWidth, skinCardHeight)
             }
 
             // Draw Skin Preview
