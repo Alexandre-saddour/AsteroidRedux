@@ -109,10 +109,9 @@ class MenuScreen(game: AsteroidsGame) : BaseScreen(game) {
                 val touchY = ButtonRenderer.getTouchY()
 
                 if (ButtonRenderer.isClicked(playBtn, touchX, touchY)) {
-                    // Switch directly to GameScreen - it handles the entire intro animation
-                    // including fading out menu UI and sliding in entities
-                    game.screen = GameScreen(game)
-                    dispose()
+                    // Switch to GameScreen with a slide transition
+                    game.changeScreen(GameScreen(game), com.example.asteroidsredux.screens.TransitionType.SLIDE_LEFT)
+                    // dispose() is handled by TransitionScreen/Game
                     return
                 }
 

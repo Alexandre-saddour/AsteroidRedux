@@ -191,10 +191,10 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
             val cardBg = if (isSelected) uiCardSelected else uiCard
             
             if (isSelected) {
-                val shader = game.assets.shaderManager.get("lightning")
+                val shader = game.assets.shaderManager.get("cold")
                 game.batch.shader = shader
                 shader.setUniformf("u_time", com.example.asteroidsredux.AsteroidsGame.stateTime)
-                shader.setUniformf("u_lightningColor", 0f, 1f, 1f, 1f) // Cyan lightning
+                shader.setUniformf("u_lightningColor", 0f, 1f, 1f, 1f) // Cyan
                 shader.setUniformf("u_regionBounds", cardBg.u, cardBg.v, cardBg.u2, cardBg.v2)
                 
                 game.batch.draw(cardBg, x, y, skinCardWidth, skinCardHeight)

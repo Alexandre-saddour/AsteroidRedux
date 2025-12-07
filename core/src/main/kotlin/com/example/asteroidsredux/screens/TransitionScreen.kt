@@ -120,7 +120,7 @@ class TransitionScreen(
 
         time += delta
         val alpha = (time / duration).coerceIn(0f, 1f)
-        val interpolated = Interpolation.pow2Out.apply(alpha)
+        val interpolated = Interpolation.exp10Out.apply(alpha)
 
         // Render 'toScreen' UI ONLY into FBO
         // We do this every frame to support dynamic UI in the target screen
