@@ -22,7 +22,6 @@ class SkinManager {
     private val selectedSkins = mutableMapOf<SkinCategory, String>().apply {
         put(SkinCategory.SHIP, ShipSkinId.CLASSIC.name)
         put(SkinCategory.ASTEROID, AsteroidSkinId.CLASSIC.name)
-        put(SkinCategory.BACKGROUND, BackgroundSkinId.STARS.name)
     }
 
     // Listeners per category
@@ -88,18 +87,5 @@ class SkinManager {
     fun addAsteroidSkinChangeListener(listener: (AsteroidSkinId) -> Unit) {
         addListener(SkinCategory.ASTEROID) { skinId -> listener(AsteroidSkinId.valueOf(skinId)) }
     }
-
-    // --- Background-specific convenience methods ---
-
-    var selectedBackgroundSkinId: BackgroundSkinId
-        get() = BackgroundSkinId.valueOf(selectedSkins[SkinCategory.BACKGROUND] ?: BackgroundSkinId.STARS.name)
-        private set(value) { selectedSkins[SkinCategory.BACKGROUND] = value.name }
-
-    fun selectBackgroundSkin(id: BackgroundSkinId): Boolean = selectSkin(SkinCategory.BACKGROUND, id.name)
-
-    fun getSelectedBackgroundSkin(): BackgroundSkin = BackgroundSkinCatalog.getSkin(selectedBackgroundSkinId)
-
-    fun addBackgroundSkinChangeListener(listener: (BackgroundSkinId) -> Unit) {
-        addListener(SkinCategory.BACKGROUND) { skinId -> listener(BackgroundSkinId.valueOf(skinId)) }
-    }
 }
+
