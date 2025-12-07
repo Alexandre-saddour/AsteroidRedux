@@ -105,7 +105,7 @@ class Ship(
 
         // Update nose position for shooting
         nose.set(Constants.SHIP_SIZE, 0f).rotateRad(angle).add(position)
-        
+
         stateTime += delta
     }
 
@@ -138,22 +138,49 @@ class Ship(
         val region = textureRegion ?: return // Can't render sprite without texture
 
         val degrees = (angle * MathUtils.radiansToDegrees) - 90f
-        SpriteRenderer.drawCentered(batch, region, position.x, position.y, Constants.SHIP_SIZE, degrees)
+
+        // Scale up if using a skin
+        val scale = if (skinManager.selectedShipSkinId != ShipSkinId.CLASSIC) Constants.SHIP_SKIN_SCALE else 1.0f
+        val size = Constants.SHIP_SIZE * scale
+
+        SpriteRenderer.drawCentered(batch, region, position.x, position.y, size, degrees)
+    }
+
+    fun renderGlow(batch: SpriteBatch) {
+        if (isDead) return
+        if (skinManager.selectedShipSkinId == ShipSkinId.CLASSIC) return // No glow for classic skin
+
+        val region = textureRegion ?: return
+        val degrees = (angle * MathUtils.radiansToDegrees) - 90f
+
+        // Glow is larger than the ship
+        val scale = Constants.SHIP_SKIN_SCALE * Constants.SHIP_GLOW_SIZE_MULT
+        val size = Constants.SHIP_SIZE * scale
+
+        val shader = assets.shaderManager.get("glow")
+        val originalShader = batch.shader
+        batch.shader = shader
+
+        shader.setUniformf("u_glowColor", Constants.SHIP_GLOW_COLOR)
+
+        SpriteRenderer.drawCentered(batch, region, position.x, position.y, size, degrees)
+
+        batch.shader = originalShader
     }
 
     fun renderThrust(batch: SpriteBatch) {
         if (isDead) return
-        
+
         // Render thrust if thrusting
         if (inputHandler.isThrusting && thrustAnimation != null) {
             val degrees = (angle * MathUtils.radiansToDegrees) + 180f // +180 to point flame behind ship
             val currentFrame = thrustAnimation!!.getKeyFrame(stateTime, true)
-            
+
             // Position behind the ship
             val fireOffset = Vector2(-Constants.SHIP_SIZE * 1.2f, 0f).rotateRad(angle)
             val fireX = position.x + fireOffset.x
             val fireY = position.y + fireOffset.y
-            
+
             SpriteRenderer.drawCentered(batch, currentFrame, fireX, fireY, Constants.SHIP_SIZE, degrees)
         }
     }

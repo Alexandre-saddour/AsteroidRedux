@@ -67,8 +67,7 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
     private val scissors = Rectangle()
 
     // Shader animation state
-    private var selectionTime = 0f
-    private var lastSelectedSkinId: String? = null
+    private val skinActivationLevels = mutableMapOf<String, Float>()
 
     override fun drawUi(delta: Float) {
         // Handle back button (hardware)
@@ -142,12 +141,6 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
                 pressedTexture = buttonPressed
             )
 
-            // We use ButtonRenderer but force the "pressed" texture if selected
-            // Actually ButtonRenderer logic relies on "isPressed" param for texture swap.
-            // Let's just manually draw it or use ButtonRenderer with a trick.
-            // Better to just draw manually here for full control or update ButtonRenderer.
-            // Let's draw manually using batch since we have textures.
-
             game.batch.begin()
             val texture = if (isSelected) buttonPressed else buttonDefault
             game.batch.draw(texture, x, y, tabWidth, tabHeight)
@@ -180,6 +173,7 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
 
         game.batch.begin()
         for ((i, skin) in skins.withIndex()) {
+            // ... (position calculations unchanged)
             val row = i / cardsPerRow
             val col = i % cardsPerRow
             val x = startX + col * (skinCardWidth + cardSpacing)
@@ -191,29 +185,32 @@ class SkinSelectionScreen(game: AsteroidsGame) : BaseScreen(game) {
             val isSelected = skin.id == selectedSkinId
             val isUnlocked = game.skinManager.isUnlocked(selectedCategory, skin.id)
 
+            // Update activation level
+            var activation = skinActivationLevels.getOrDefault(skin.id, 0f)
+            val delta = Gdx.graphics.deltaTime
+            val fadeSpeed = 2.0f // 0.5 seconds for full transition (1/0.5 = 2)
+
+            if (isSelected) {
+                activation += delta * fadeSpeed
+            } else {
+                activation -= delta * fadeSpeed
+            }
+            activation = activation.coerceIn(0f, 1f)
+            skinActivationLevels[skin.id] = activation
+
             // Draw Card Background
             // Always draw unselected card as base
             game.batch.draw(uiCard, x, y, skinCardWidth, skinCardHeight)
-            
-            if (isSelected) {
-                // Check if selection changed
-                if (skin.id != lastSelectedSkinId) {
-                    lastSelectedSkinId = skin.id
-                    selectionTime = 0f
-                }
-                
-                // Update selection time
-                selectionTime += Gdx.graphics.deltaTime
-                val activationDuration = 0.5f
-                val activation = (selectionTime / activationDuration).coerceIn(0f, 1f)
-                
+
+            // Draw selected overlay if activation > 0
+            if (activation > 0f) {
                 val shader = game.assets.shaderManager.get("cold")
                 game.batch.shader = shader
                 shader.setUniformf("u_time", com.example.asteroidsredux.AsteroidsGame.stateTime)
                 shader.setUniformf("u_lightningColor", 0f, 1f, 1f, 1f) // Cyan
                 shader.setUniformf("u_regionBounds", uiCardSelected.u, uiCardSelected.v, uiCardSelected.u2, uiCardSelected.v2)
                 shader.setUniformf("u_activation", activation)
-                
+
                 // Fade in the selected card on top
                 game.batch.setColor(1f, 1f, 1f, activation)
                 game.batch.draw(uiCardSelected, x, y, skinCardWidth, skinCardHeight)

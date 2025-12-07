@@ -20,6 +20,9 @@ object Constants {
     // Ship
     const val SHIP_SIZE = 25f
     const val SHIP_ROTATION_SPEED = 5f // Radians per second
+    const val SHIP_SKIN_SCALE = 1.5f // Scale multiplier when using a skin
+    val SHIP_GLOW_COLOR = Color.valueOf("20B2AA") // Light Sea Green
+    const val SHIP_GLOW_SIZE_MULT = 1.2f // Glow size relative to ship size
 
     // Bullet
     const val BULLET_MAX_DISTANCE = 700f // Distance units

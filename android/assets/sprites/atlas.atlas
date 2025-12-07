@@ -54,6 +54,26 @@ ui/ui_card_selected
   index: -1
 
 atlas3.png
+size: 2048, 512
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+bullets/bullet1
+  rotate: false
+  xy: 1224, 1
+  size: 490, 499
+  orig: 490, 499
+  offset: 0, 0
+  index: -1
+bullets/bullet2
+  rotate: false
+  xy: 1, 20
+  size: 1221, 480
+  orig: 1221, 480
+  offset: 0, 0
+  index: -1
+
+atlas4.png
 size: 2048, 256
 format: RGBA8888
 filter: Nearest, Nearest
@@ -87,7 +107,7 @@ fire/skin1/fire
   offset: 0, 0
   index: 3
 
-atlas4.png
+atlas5.png
 size: 4096, 2048
 format: RGBA8888
 filter: Nearest, Nearest
@@ -107,14 +127,21 @@ rock/rock2
   offset: 0, 0
   index: -1
 
-atlas5.png
+atlas6.png
 size: 4096, 4096
 format: RGBA8888
 filter: Nearest, Nearest
 repeat: none
 ship/ship1
   rotate: false
-  xy: 2757, 1640
+  xy: 2757, 1265
+  size: 810, 1040
+  orig: 810, 1040
+  offset: 0, 0
+  index: -1
+ship/ship11
+  rotate: false
+  xy: 1797, 486
   size: 531, 665
   orig: 531, 665
   offset: 0, 0

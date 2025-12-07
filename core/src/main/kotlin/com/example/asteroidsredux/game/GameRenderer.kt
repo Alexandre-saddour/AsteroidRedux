@@ -20,7 +20,7 @@ class GameRenderer(
 ) {
     private val camera = OrthographicCamera()
     var zoomFactor = Constants.Rendering.DEFAULT_ZOOM
-    
+
     // When true, camera stays centered on screen instead of following ship
     var isIntroMode = false
 
@@ -57,13 +57,13 @@ class GameRenderer(
 
                 val offsetX = xOffset * w
                 val offsetY = yOffset * h
-                
+
                 val combined = camera.combined.cpy()
                 combined.translate(offsetX, offsetY, 0f)
-                
+
                 shapeRenderer.projectionMatrix = combined
                 batch.projectionMatrix = combined
-                
+
                 renderWorld()
             }
         }
@@ -72,14 +72,14 @@ class GameRenderer(
     private fun renderWorld() {
         val asteroidSkinId = skinManager.selectedAsteroidSkinId
         val shipSkinId = skinManager.selectedShipSkinId
-        
+
         // Render Classic (Line-based) entities
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         if (asteroidSkinId == AsteroidSkinId.CLASSIC) {
             for (asteroid in world.asteroids) asteroid.render(shapeRenderer)
         }
         shapeRenderer.end()
-        
+
         // Render Classic (Filled) entities - Ship uses filled triangle
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
         if (shipSkinId == ShipSkinId.CLASSIC) {
@@ -89,7 +89,7 @@ class GameRenderer(
 
         // Render Sprite-based entities
         batch.begin()
-        
+
         // Asteroids (Sprite)
         if (asteroidSkinId != AsteroidSkinId.CLASSIC) {
             val textureRegion = assets.getAsteroidTexture(asteroidSkinId)
@@ -97,13 +97,19 @@ class GameRenderer(
                 for (asteroid in world.asteroids) asteroid.render(batch, textureRegion)
             }
         }
-        
+
         // Ship (Sprite)
         world.ship.renderThrust(batch)
         if (shipSkinId != ShipSkinId.CLASSIC) {
+            if (renderGlow) {
+                // Flush batch to ensure correct order if shaders are switched inside renderGlow
+                batch.flush()
+                world.ship.renderGlow(batch)
+                batch.flush()
+            }
             world.ship.render(batch)
         }
-        
+
         batch.end()
 
         // Render Bullets and Particles
@@ -113,3 +119,5 @@ class GameRenderer(
         shapeRenderer.end()
     }
 }
+
+private const val renderGlow = false

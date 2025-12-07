@@ -10,6 +10,7 @@ class ShaderManager : Disposable {
 
     fun load() {
         loadShader("cold", "shaders/default.vert", "shaders/cold.frag")
+        loadShader("glow", "shaders/default.vert", "shaders/glow.frag")
     }
 
     private fun loadShader(name: String, vertPath: String, fragPath: String) {
