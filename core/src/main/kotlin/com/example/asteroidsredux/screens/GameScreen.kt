@@ -76,50 +76,50 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
         hud.render(score, isPaused, offeredUpgrades)
     }
 
-    private var totalOffsetX = 0f
+    private var totalOffsetX = -game.backgroundRenderer.scrollX
     private var totalOffsetY = 0f
 
     private fun drawBackground() {
         val bgSkin = game.skinManager.getSelectedBackgroundSkin()
         val region = game.assets.getBackgroundTexture(com.example.asteroidsredux.skins.BackgroundSkinId.valueOf(bgSkin.id))
-        
+
         if (region != null) {
             game.batch.begin()
             game.batch.disableBlending()
-            
+
             val tileW = region.regionWidth.toFloat()
             val tileH = region.regionHeight.toFloat()
-            
+
             // Parallax factor (0.2 means background moves at 20% of ship speed)
             val parallaxFactor = 0.2f
-            
+
             // Accumulate offset based on ship velocity
             // We use Gdx.graphics.deltaTime for smooth rendering update
             // Note: We should ideally do this in update() but doing it here is fine for visual effect
             val delta = Gdx.graphics.deltaTime
             totalOffsetX -= ship.velocity.x * delta * parallaxFactor
             totalOffsetY -= ship.velocity.y * delta * parallaxFactor
-            
+
             // Calculate the starting position for the first tile
             // We use modulo to find the offset within a single tile
             // We subtract tileW/tileH to ensure we always have a buffer on the left/top
             var startX = (totalOffsetX % tileW)
             if (startX > 0) startX -= tileW
-            
+
             var startY = (totalOffsetY % tileH)
             if (startY > 0) startY -= tileH
-            
+
             // Draw enough tiles to cover the screen
             val cols = (Constants.WORLD_WIDTH / tileW).toInt() + 2
             val rows = (Constants.WORLD_HEIGHT / tileH).toInt() + 2
-            
+
             for (col in 0 until cols) {
                 for (row in 0 until rows) {
                     game.batch.draw(
-                        region, 
-                        startX + col * tileW, 
-                        startY + row * tileH, 
-                        tileW, 
+                        region,
+                        startX + col * tileW,
+                        startY + row * tileH,
+                        tileW,
                         tileH
                     )
                 }

@@ -6,12 +6,12 @@ import com.example.asteroidsredux.AsteroidsGame
 
 class BackgroundRenderer(private val game: AsteroidsGame) {
     private val bgStars: TextureRegion = game.assets.getBackgroundStars()
-    private var bgScrollX = 0f
+    var scrollX = 0f
     private val bgScrollSpeed = 30f
 
     fun update(delta: Float) {
-        bgScrollX += bgScrollSpeed * delta
-        if (bgScrollX > bgStars.regionWidth) bgScrollX = 0f
+        scrollX += bgScrollSpeed * delta
+        scrollX %= bgStars.regionWidth.toFloat()
     }
 
     fun draw(batch: SpriteBatch) {
@@ -22,7 +22,7 @@ class BackgroundRenderer(private val game: AsteroidsGame) {
         val screenWidth = Constants.WORLD_WIDTH
         val screenHeight = Constants.WORLD_HEIGHT
 
-        var x = -bgScrollX
+        var x = -scrollX
         while (x < screenWidth) {
             var y = 0f
             while (y < screenHeight) {
