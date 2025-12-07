@@ -110,7 +110,7 @@ class MenuScreen(game: AsteroidsGame) : BaseScreen(game) {
 
                 if (ButtonRenderer.isClicked(playBtn, touchX, touchY)) {
                     // Switch to GameScreen with a slide transition
-                    game.changeScreen(GameScreen(game), com.example.asteroidsredux.screens.TransitionType.SLIDE_LEFT)
+                    game.screen = GameScreen(game)
                     // dispose() is handled by TransitionScreen/Game
                     return
                 }
