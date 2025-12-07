@@ -2,26 +2,26 @@ package com.example.asteroidsredux.progression
 
 object UpgradeCatalog {
     val upgrades = listOf(
-        UpgradeDefinition(
-            id = UpgradeId.DAMAGE, // TODO HOW DOES IT WORK ?
-            displayName = "Damage",
-            descriptionPerLevel = listOf(
-                "Bullets deal +20% damage",
-                "Bullets deal +40% damage",
-                "Bullets deal +60% damage",
-                "Bullets deal +80% damage",
-                "Bullets deal +100% damage"
-            )
-        ),
+//        UpgradeDefinition(
+//            id = UpgradeId.DAMAGE, // TODO HOW DOES IT WORK ?
+//            displayName = "Damage",
+//            descriptionPerLevel = listOf(
+//                "Bullets deal +20% damage",
+//                "Bullets deal +40% damage",
+//                "Bullets deal +60% damage",
+//                "Bullets deal +80% damage",
+//                "Bullets deal +100% damage"
+//            )
+//        ),
         UpgradeDefinition(
             id = UpgradeId.FIRE_RATE,
             displayName = "Fire Rate",
             descriptionPerLevel = listOf(
                 "Fire rate +12%",
-                "Fire rate +24%",
-                "Fire rate +36%",
-                "Fire rate +48%",
-                "Fire rate +60%"
+                "Fire rate +12% (+24% in total)",
+                "Fire rate +12% (+36% in total)",
+                "Fire rate +12% (+48% in total)",
+                "Fire rate +12% (+60% in total)"
             )
         ),
         UpgradeDefinition(
@@ -29,8 +29,8 @@ object UpgradeCatalog {
             displayName = "Bullet Speed",
             descriptionPerLevel = listOf(
                 "Bullet speed +25%",
-                "Bullet speed +50%",
-                "Bullet speed +75%"
+                "Bullet speed +25% (+50% in total)",
+                "Bullet speed +25% (+75% in total)"
             )
         ),
         UpgradeDefinition(
@@ -48,8 +48,8 @@ object UpgradeCatalog {
             displayName = "Multi Shot",
             descriptionPerLevel = listOf(
                 "+1 extra bullet",
-                "+2 extra bullets",
-                "+3 extra bullets"
+                "+1 extra bullet (+2 in total)",
+                "+1 extra bullet (+3 in total)"
             )
         ),
         UpgradeDefinition(
@@ -65,8 +65,8 @@ object UpgradeCatalog {
             displayName = "Bigger Bullets",
             descriptionPerLevel = listOf(
                 "Bullet size +50%",
-                "Bullet size +100%",
-                "Bullet size +150%"
+                "Bullet size +50% (+100% in total)",
+                "Bullet size +50% (+150% in total)"
             )
         ),
         UpgradeDefinition(
@@ -88,23 +88,23 @@ object UpgradeCatalog {
                 "Max HP +1"
             )
         ),
-        UpgradeDefinition(
-            id = UpgradeId.SHIELD,
-            displayName = "Shield",
-            descriptionPerLevel = listOf(
-                "Active Shield (12s recharge)",
-                "Shield recharge reduced to 7s"
-            )
-        ),
-        UpgradeDefinition(
-            id = UpgradeId.MAGNET,
-            displayName = "Magnet",
-            descriptionPerLevel = listOf(
-                "XP Gain +5%",
-                "XP Gain +10%",
-                "XP Gain +15%"
-            )
-        ),
+//        UpgradeDefinition(
+//            id = UpgradeId.SHIELD,
+//            displayName = "Shield",
+//            descriptionPerLevel = listOf(
+//                "Active Shield (12s recharge)",
+//                "Shield recharge reduced to 7s"
+//            )
+//        ),
+//        UpgradeDefinition(
+//            id = UpgradeId.MAGNET,
+//            displayName = "Magnet",
+//            descriptionPerLevel = listOf(
+//                "XP Gain +5%",
+//                "XP Gain +10%",
+//                "XP Gain +15%"
+//            )
+//        ),
         UpgradeDefinition(
             id = UpgradeId.EXPLOSION_RADIUS, // TODO SUPER_UPGRADE
             displayName = "Explosive Rounds",
