@@ -37,4 +37,12 @@ class AsteroidsGame : Game() {
     fun changeScreen(newScreen: com.badlogic.gdx.Screen, type: com.example.asteroidsredux.screens.TransitionType) {
         setScreen(com.example.asteroidsredux.screens.TransitionScreen(this, this.screen, newScreen, type))
     }
+    override fun render() {
+        stateTime += com.badlogic.gdx.Gdx.graphics.deltaTime
+        super.render()
+    }
+
+    companion object {
+        var stateTime = 0f
+    }
 }
