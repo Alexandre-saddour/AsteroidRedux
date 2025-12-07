@@ -22,7 +22,7 @@ class TransitionScreen(
     private val fromScreen: Screen,
     private val toScreen: Screen,
     private val type: TransitionType = TransitionType.SLIDE_LEFT,
-    private val duration: Float = 0.5f
+    private val duration: Float = 0.8f
 ) : BaseScreen(game) {
 
     private var time = 0f
