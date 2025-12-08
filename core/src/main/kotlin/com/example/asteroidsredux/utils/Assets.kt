@@ -2,6 +2,7 @@ package com.example.asteroidsredux.utils
 
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureAtlas
@@ -19,10 +20,16 @@ class Assets : Disposable {
     val manager = AssetManager()
     private lateinit var atlas: TextureAtlas
 
+    // 1×1 white pixel texture for batched drawing (stars, debris)
+    private lateinit var pixelTexture: Texture
+    private lateinit var pixelRegion: TextureRegion
+
     fun load() {
         manager.load("sounds/shoot.wav", Sound::class.java)
         manager.load("sounds/explosion.wav", Sound::class.java)
         manager.load("sprites/atlas.atlas", TextureAtlas::class.java)
+        manager.load("images/halo.png", Texture::class.java)
+        manager.load("images/light_cookie.png", Texture::class.java)
     }
 
     private lateinit var font: BitmapFont
@@ -30,13 +37,31 @@ class Assets : Disposable {
     fun finishLoading() {
         manager.finishLoading()
         atlas = manager.get("sprites/atlas.atlas", TextureAtlas::class.java)
-        font = BitmapFont() // Load default font once
+        font = BitmapFont()
         shaderManager.load()
+
+        // Create 1×1 white pixel texture for efficient batched rendering
+        val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888)
+        pixmap.setColor(1f, 1f, 1f, 1f)
+        pixmap.fill()
+        pixelTexture = Texture(pixmap)
+        pixmap.dispose()
+        pixelRegion = TextureRegion(pixelTexture)
     }
 
     fun getFont(): BitmapFont = font
     fun getShootSound(): Sound = manager.get("sounds/shoot.wav", Sound::class.java)
     fun getExplosionSound(): Sound = manager.get("sounds/explosion.wav", Sound::class.java)
+
+    // === Background System Assets ===
+    /** 1×1 white pixel for batched star/debris rendering */
+    fun getPixelRegion(): TextureRegion = pixelRegion
+
+    /** Halo texture for additive light overlays */
+    fun getHaloTexture(): Texture = manager.get("images/halo.png", Texture::class.java)
+
+    /** Light cookie texture for atmospheric overlays */
+    fun getLightCookieTexture(): Texture = manager.get("images/light_cookie.png", Texture::class.java)
 
     // Generic texture region retrieval for any skin
     fun getTextureRegion(skin: Skin): TextureRegion? {
@@ -68,6 +93,8 @@ class Assets : Disposable {
 
     override fun dispose() {
         manager.dispose()
+        pixelTexture.dispose()
         shaderManager.dispose()
     }
 }
+
