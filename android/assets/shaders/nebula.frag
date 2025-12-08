@@ -78,29 +78,29 @@ void main() {
     n = pow(n, u_contrast);
     float n1c = pow(n1, u_contrast);
 
-    // Color Palette (Cold/Space)
-    vec3 colorBg = vec3(0.02, 0.02, 0.05);     // Deep dark blue/black
-    vec3 colorNebula1 = vec3(0.1, 0.2, 0.4);   // Blue
-    vec3 colorNebula2 = vec3(0.2, 0.1, 0.3);   // Purple
+    // Color Palette (Cold/Space) - boosted for visibility
+    vec3 colorBg = vec3(0.03, 0.03, 0.08);     // Deep dark blue/black
+    vec3 colorNebula1 = vec3(0.15, 0.3, 0.55);  // Brighter blue
+    vec3 colorNebula2 = vec3(0.3, 0.15, 0.45);  // Brighter purple
 
     // Mix colors based on noise
-    vec3 color = mix(colorBg, colorNebula1, smoothstep(0.2, 0.6, n));
-    color = mix(color, colorNebula2, smoothstep(0.4, 0.8, n1c));
+    vec3 color = mix(colorBg, colorNebula1, smoothstep(0.15, 0.55, n));
+    color = mix(color, colorNebula2, smoothstep(0.35, 0.75, n1c));
 
     // Apply pseudo-light direction bias (lighter on one side)
     float lightBias = dot(normalize(st - 0.5), normalize(u_lightDir)) * 0.5 + 0.5;
-    color *= 0.8 + 0.4 * lightBias;
+    color *= 0.85 + 0.35 * lightBias;
 
     // Apply color grading tint
     color *= u_tint;
 
-    // Vignette
+    // Vignette (softened)
     vec2 uv = v_texCoords;
-    float vignette = 1.0 - smoothstep(0.5, 1.5, length(uv - 0.5) * 1.5);
+    float vignette = 1.0 - smoothstep(0.6, 1.6, length(uv - 0.5) * 1.3);
     color *= vignette;
 
-    // Calculate alpha with intensity control
-    float baseAlpha = 0.5 + n * 0.2;
+    // Calculate alpha with intensity control - boosted base
+    float baseAlpha = 0.6 + n * 0.25;
     float alpha = baseAlpha * u_intensity;
 
     gl_FragColor = vec4(color, alpha) + dummy * 0.0001;

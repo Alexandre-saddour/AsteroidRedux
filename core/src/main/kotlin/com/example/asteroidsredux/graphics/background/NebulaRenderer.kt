@@ -23,7 +23,7 @@ class NebulaRenderer(assets: Assets) : Disposable {
         var tintR: Float = 1f,
         var tintG: Float = 1f,
         var tintB: Float = 1f,
-        var intensity: Float = 0.6f,
+        var intensity: Float = 0.85f,     // Increased for better visibility
         var noiseScale: Float = 1f,      // Noise frequency multiplier
         var scrollSpeed: Float = 1f,     // Scroll speed multiplier
         var contrast: Float = 1f,        // Contrast enhancement
