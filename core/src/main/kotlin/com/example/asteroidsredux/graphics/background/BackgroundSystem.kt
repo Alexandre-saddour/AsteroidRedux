@@ -122,9 +122,38 @@ class BackgroundSystem(
         lightOverlayRenderer.update(delta, time)
     }
 
+
     fun renderBackground() {
         val startTime = System.nanoTime()
         debugStats.drawCalls = 0
+
+        val camX = camera.position.x
+        val camY = camera.position.y
+        val viewW = camera.viewportWidth * camera.zoom
+        val viewH = camera.viewportHeight * camera.zoom
+
+        // 0. Background image (tiled)
+        val bgRegion = assets.getBackgroundStars()
+        val bgW = bgRegion.regionWidth.toFloat()
+        val bgH = bgRegion.regionHeight.toFloat()
+
+        // Calculate tile offset based on cumulative scroll for parallax
+        val parallaxFactor = 0.30f  // Visible scrolling as ship moves
+        val offsetX = (cumulativeScrollX * parallaxFactor) % bgW
+        val offsetY = (cumulativeScrollY * parallaxFactor) % bgH
+
+        // Tile the background across the viewport
+        val startX = camX - viewW / 2 - offsetX - bgW
+        val startY = camY - viewH / 2 - offsetY - bgH
+        val tilesX = ((viewW / bgW) + 3).toInt()
+        val tilesY = ((viewH / bgH) + 3).toInt()
+
+        for (tx in 0 until tilesX) {
+            for (ty in 0 until tilesY) {
+                batch.draw(bgRegion, startX + tx * bgW, startY + ty * bgH, bgW, bgH)
+            }
+        }
+        debugStats.drawCalls += tilesX * tilesY
 
         // 1. Stars
         if (params.enableStars) {

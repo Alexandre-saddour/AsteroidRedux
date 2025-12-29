@@ -50,12 +50,12 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
     private var isInIntroAnimation = true
     private var introTime = 0f
     private var introPhase = 0 // 0 = UI fade, 1 = entity slide
-    
+
     // Store original positions for animation
     private val shipTargetPosition = Vector2()
     private val asteroidStartPositions = mutableMapOf<Asteroid, Vector2>()
     private val asteroidTargetPositions = mutableMapOf<Asteroid, Vector2>()
-    
+
     // Menu UI elements for fade animation (cached from MenuScreen style)
     private val scaleFactor = Constants.UI.SCALE_FACTOR
     private val titleLogo = game.assets.getTitleLogo()
@@ -74,36 +74,36 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
     init {
         Gdx.input.inputProcessor = inputHandler
         worldManager.spawnAsteroids(Constants.Game.INITIAL_ASTEROID_COUNT)
-        
+
         // Setup intro animation
         setupIntroAnimation()
     }
-    
+
     private fun setupIntroAnimation() {
         // Enable intro mode on renderer (fixed camera)
         gameRenderer.isIntroMode = true
-        
+
         // Store ship's target position (center)
         shipTargetPosition.set(ship.position)
-        
+
         // Move ship to start position (below screen)
         ship.position.set(Constants.WORLD_WIDTH / 2, -Constants.SHIP_SIZE * 3)
-        
+
         // For each asteroid, calculate its start position (off-screen based on final position)
         for (asteroid in worldManager.asteroids) {
             val targetPos = Vector2(asteroid.position)
             asteroidTargetPositions[asteroid] = targetPos
-            
+
             // Calculate which edge to slide from based on position
             val centerX = Constants.WORLD_WIDTH / 2
             val centerY = Constants.WORLD_HEIGHT / 2
-            
+
             val startPos = Vector2()
-            
+
             // Determine primary direction based on which quadrant the asteroid is in
             val dx = asteroid.position.x - centerX
             val dy = asteroid.position.y - centerY
-            
+
             if (kotlin.math.abs(dx) > kotlin.math.abs(dy)) {
                 // Horizontal is dominant - slide from left or right
                 if (dx < 0) {
@@ -123,9 +123,9 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
                     startPos.set(asteroid.position.x, Constants.WORLD_HEIGHT + asteroid.size * 2)
                 }
             }
-            
+
             asteroidStartPositions[asteroid] = startPos
-            
+
             // Move asteroid to start position
             asteroid.position.set(startPos)
             // Sync polygon position for classic skin rendering
@@ -151,7 +151,7 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
         // Handle intro animation
         if (isInIntroAnimation) {
             updateIntroAnimation(delta)
-            
+
             // During entity slide phase, render the game world
             if (introPhase == 1) {
                 // Render background
@@ -161,18 +161,18 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
                 game.batch.end()
 
                 gameRenderer.render()
-                
+
                 // Render foreground
                 game.batch.begin()
                 backgroundSystem.renderForeground()
                 game.batch.end()
             }
-            
+
             // During UI fade phase, render menu UI with fading alpha
             if (introPhase == 0) {
                 renderFadingMenuUi()
             }
-            
+
             // Don't render HUD during intro
             return
         }
@@ -199,7 +199,7 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
 
         // 2. Game World
         gameRenderer.render()
-        
+
         // 3. Foreground Layers (Debris, Lights)
         game.batch.begin()
         backgroundSystem.renderForeground()
@@ -207,7 +207,7 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
 
         hud.render(score, isPaused, offeredUpgrades)
     }
-    
+
     override fun drawUi(delta: Float) {
         // Draw Parallax Background only after intro is complete
         // During intro, the shared background is used (via showSharedBackground)
@@ -215,7 +215,7 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
         // Actually, BaseScreen might clear screen? No, BaseScreen just calls drawUi.
         // GameScreen.render handles clearing and drawing background.
         // So drawUi just needs to handle UI elements like back button.
-        
+
         // Handle back button (hardware)
         if (!isInIntroAnimation && game.screen == this && Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
             game.changeScreen(MenuScreen(game), com.example.asteroidsredux.screens.TransitionType.CUSTOMIZE_TO_MENU)
@@ -225,10 +225,10 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
 
     private fun updateIntroAnimation(delta: Float) {
         introTime += delta
-        
+
         val uiFadeDuration = Constants.Game.INTRO_UI_FADE_DURATION
         val slideDuration = Constants.Game.INTRO_SLIDE_DURATION
-        
+
         if (introPhase == 0) {
             // Phase 0: UI Fade
             if (introTime >= uiFadeDuration) {
@@ -241,58 +241,58 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
                 return
             }
         }
-        
+
         // Phase 1: Entity slide-in
         val progress = (introTime / slideDuration).coerceIn(0f, 1f)
-        
+
         // Use easing for smooth animation
         val easedProgress = Interpolation.exp10Out.apply(progress)
-        
+
         // Animate ship from bottom to center
         val shipStartY = -Constants.SHIP_SIZE * 3
         val shipTargetY = shipTargetPosition.y
         ship.position.x = shipTargetPosition.x
         ship.position.y = shipStartY + (shipTargetY - shipStartY) * easedProgress
-        
+
         // Animate each asteroid from its start position to target
         for (asteroid in worldManager.asteroids) {
             val startPos = asteroidStartPositions[asteroid] ?: continue
             val targetPos = asteroidTargetPositions[asteroid] ?: continue
-            
+
             asteroid.position.x = startPos.x + (targetPos.x - startPos.x) * easedProgress
             asteroid.position.y = startPos.y + (targetPos.y - startPos.y) * easedProgress
             // Sync polygon position for classic skin rendering
             asteroid.polygon.setPosition(asteroid.position.x, asteroid.position.y)
         }
-        
+
         // Check if animation is complete
         if (introTime >= slideDuration) {
             isInIntroAnimation = false
             gameRenderer.isIntroMode = false
-            
+
             // Ensure final positions are exact
             ship.position.set(shipTargetPosition)
             for (asteroid in worldManager.asteroids) {
                 val targetPos = asteroidTargetPositions[asteroid] ?: continue
                 asteroid.position.set(targetPos)
             }
-            
+
             // Clear animation data
             asteroidStartPositions.clear()
             asteroidTargetPositions.clear()
         }
     }
-    
+
     private fun renderFadingMenuUi() {
         val uiFadeDuration = Constants.Game.INTRO_UI_FADE_DURATION
         val fadeProgress = (introTime / uiFadeDuration).coerceIn(0f, 1f)
         val alpha = 1f - Interpolation.pow2In.apply(fadeProgress)
-        
+
         if (alpha <= 0f) return
-        
+
         val centerX = Constants.WORLD_WIDTH / 2
         val centerY = Constants.WORLD_HEIGHT / 2
-        
+
         // Create button objects matching MenuScreen layout
         val playBtn = Button(
             x = centerX - playButtonWidth / 2,
@@ -305,7 +305,7 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
             texture = buttonDefault,
             pressedTexture = buttonDefault
         )
-        
+
         val customizeBtn = Button(
             x = centerX - customizeButtonWidth / 2,
             y = playBtn.y - customizeButtonHeight - buttonSpacing,
@@ -317,12 +317,12 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
             texture = buttonDefault,
             pressedTexture = buttonDefault
         )
-        
+
         // Draw buttons with alpha
         game.batch.setColor(1f, 1f, 1f, alpha)
         ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), playBtn, false)
         ButtonRenderer.draw(game.shapeRenderer, game.batch, game.assets.getFont(), customizeBtn, false)
-        
+
         // Draw title logo with alpha
         game.batch.begin()
         game.batch.setColor(1f, 1f, 1f, alpha)

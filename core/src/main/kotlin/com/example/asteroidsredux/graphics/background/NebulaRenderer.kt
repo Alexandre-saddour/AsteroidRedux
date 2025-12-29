@@ -94,7 +94,7 @@ class NebulaRenderer(assets: Assets) : Disposable {
         shader.setUniformf("u_time", time)
         shader.setUniformf("u_resolution", Constants.WORLD_WIDTH, Constants.WORLD_HEIGHT)
         shader.setUniformf("u_scroll", scrollX, scrollY)
-        shader.setUniformf("u_tint", params.tintR, params.tintG, params.tintB)
+//        shader.setUniformf("u_tint", params.tintR, params.tintG, params.tintB)
         shader.setUniformf("u_intensity", params.intensity)
         shader.setUniformf("u_noiseScale", params.noiseScale)
         shader.setUniformf("u_scrollSpeed", params.scrollSpeed)
