@@ -469,4 +469,16 @@ class GameScreen(game: AsteroidsGame) : BaseScreen(game) {
 
         isPaused = false
     }
+
+    override fun hide() {
+        Gdx.input.inputProcessor = null
+    }
+
+    override fun dispose() {
+        if (Gdx.input.inputProcessor == inputHandler) {
+            Gdx.input.inputProcessor = null
+        }
+        worldManager.dispose()
+        super.dispose()
+    }
 }

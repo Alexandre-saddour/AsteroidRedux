@@ -8,7 +8,9 @@ import com.example.asteroidsredux.entities.Particle
 import com.example.asteroidsredux.entities.Ship
 import com.example.asteroidsredux.utils.Constants
 
-class WorldManager(val ship: Ship) {
+import com.badlogic.gdx.utils.Disposable
+
+class WorldManager(val ship: Ship) : Disposable {
     val asteroids = Array<Asteroid>()
     val bullets = Array<Bullet>()
     val particles = Array<Particle>()
@@ -51,6 +53,10 @@ class WorldManager(val ship: Ship) {
             asteroids.add(asteroid)
         }
         asteroidsToAdd.clear()
+    }
+
+    override fun dispose() {
+        ship.dispose()
     }
 
     fun spawnAsteroids(count: Int) {

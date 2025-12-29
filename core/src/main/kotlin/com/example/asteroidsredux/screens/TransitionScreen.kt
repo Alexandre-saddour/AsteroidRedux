@@ -47,7 +47,7 @@ class TransitionScreen(
         // Prepare 'toScreen' for rendering (resize only, don't call show() to avoid double init)
         toScreen.resize(w, h)
 
-        captureScreens(w, h)
+        captureScreens()
     }
 
     private fun createFbos(w: Int, h: Int) {
@@ -75,7 +75,7 @@ class TransitionScreen(
         }
     }
 
-    private fun captureScreens(w: Int, h: Int) {
+    private fun captureScreens() {
         if (fromFbo == null || toFbo == null) return
 
         // Capture 'fromScreen'
@@ -202,6 +202,7 @@ class TransitionScreen(
         game.batch.end()
 
         if (time >= duration) {
+            fromScreen.dispose()
             if (!disposed) dispose()
             game.screen = toScreen
         }
@@ -210,7 +211,7 @@ class TransitionScreen(
     override fun resize(width: Int, height: Int) {
         uiCamera.setToOrtho(false, width.toFloat(), height.toFloat())
         createFbos(width, height)
-        captureScreens(width, height) // Re-capture static fromScreen
+        captureScreens() // Re-capture static fromScreen
 
         fromScreen.resize(width, height)
         toScreen.resize(width, height)

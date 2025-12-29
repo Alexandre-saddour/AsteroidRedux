@@ -14,6 +14,10 @@ class ShaderManager : Disposable {
     }
 
     private fun loadShader(name: String, vertPath: String, fragPath: String) {
+        if (shaders.containsKey(name)) {
+            shaders[name]?.dispose()
+        }
+
         val vert = Gdx.files.internal(vertPath)
         val frag = Gdx.files.internal(fragPath)
         

@@ -71,8 +71,10 @@ class SkinManager {
 
     fun getSelectedShipSkin(): ShipSkin = ShipSkinCatalog.getSkin(selectedShipSkinId)
 
-    fun addShipSkinChangeListener(listener: (ShipSkinId) -> Unit) {
-        addListener(SkinCategory.SHIP) { skinId -> listener(ShipSkinId.valueOf(skinId)) }
+    fun addShipSkinChangeListener(listener: (ShipSkinId) -> Unit): (String) -> Unit {
+        val wrapper: (String) -> Unit = { skinId -> listener(ShipSkinId.valueOf(skinId)) }
+        addListener(SkinCategory.SHIP, wrapper)
+        return wrapper
     }
 
     // --- Asteroid-specific convenience methods ---
@@ -85,8 +87,10 @@ class SkinManager {
 
     fun getSelectedAsteroidSkin(): AsteroidSkin = AsteroidSkinCatalog.getSkin(selectedAsteroidSkinId)
 
-    fun addAsteroidSkinChangeListener(listener: (AsteroidSkinId) -> Unit) {
-        addListener(SkinCategory.ASTEROID) { skinId -> listener(AsteroidSkinId.valueOf(skinId)) }
+    fun addAsteroidSkinChangeListener(listener: (AsteroidSkinId) -> Unit): (String) -> Unit {
+        val wrapper: (String) -> Unit = { skinId -> listener(AsteroidSkinId.valueOf(skinId)) }
+        addListener(SkinCategory.ASTEROID, wrapper)
+        return wrapper
     }
 
     // --- Background-specific convenience methods ---
@@ -99,7 +103,9 @@ class SkinManager {
 
     fun getSelectedBackgroundSkin(): BackgroundSkin = BackgroundSkinCatalog.getSkin(selectedBackgroundSkinId)
 
-    fun addBackgroundSkinChangeListener(listener: (BackgroundSkinId) -> Unit) {
-        addListener(SkinCategory.BACKGROUND) { skinId -> listener(BackgroundSkinId.valueOf(skinId)) }
+    fun addBackgroundSkinChangeListener(listener: (BackgroundSkinId) -> Unit): (String) -> Unit {
+        val wrapper: (String) -> Unit = { skinId -> listener(BackgroundSkinId.valueOf(skinId)) }
+        addListener(SkinCategory.BACKGROUND, wrapper)
+        return wrapper
     }
 }

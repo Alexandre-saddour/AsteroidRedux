@@ -15,12 +15,15 @@ import com.example.asteroidsredux.utils.Constants
 import com.example.asteroidsredux.utils.MathUtils2D
 import com.example.asteroidsredux.utils.SpriteRenderer
 
+import com.badlogic.gdx.utils.Disposable
+import com.example.asteroidsredux.skins.SkinCategory
+
 class Ship(
     private val inputHandler: InputHandler,
     private val stats: PlayerStats,
     private val assets: Assets,
     val skinManager: SkinManager
-) {
+) : Disposable {
     val position = Vector2(Constants.WORLD_WIDTH / 2, Constants.WORLD_HEIGHT / 2)
     val velocity = Vector2()
     var angle = MathUtils.PI / 2 // Pointing up
@@ -32,13 +35,19 @@ class Ship(
     private var thrustAnimation: Animation<TextureRegion>? = null
     private var stateTime = 0f
 
+    private val skinListener: (String) -> Unit
+
     init {
         // Listen for skin changes
-        skinManager.addShipSkinChangeListener { skinId ->
+        skinListener = skinManager.addShipSkinChangeListener { skinId ->
             textureRegion = assets.getShipTexture(skinId)
             loadThrustAnimation(skinId)
         }
         loadThrustAnimation(skinManager.selectedShipSkinId)
+    }
+
+    override fun dispose() {
+        skinManager.removeListener(SkinCategory.SHIP, skinListener)
     }
 
     // Manual skin switching (if needed without going through SkinManager)
